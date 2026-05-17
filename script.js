@@ -38,6 +38,8 @@ const filterSaturation = document.querySelector("#filterSaturation");
 const backgroundMode = document.querySelector("#backgroundMode");
 const backgroundColorA = document.querySelector("#backgroundColorA");
 const backgroundColorB = document.querySelector("#backgroundColorB");
+const advancedToggle = document.querySelector("#advancedToggle");
+const advancedPanel = document.querySelector("#advancedPanel");
 const previewButton = document.querySelector("#previewButton");
 const renderButton = document.querySelector("#renderButton");
 const downloadLink = document.querySelector("#downloadLink");
@@ -87,6 +89,7 @@ function settingsPayload() {
     backgroundMode: backgroundMode.value,
     backgroundColorA: backgroundColorA.value,
     backgroundColorB: backgroundColorB.value,
+    advancedOpen: advancedToggle.getAttribute("aria-expanded") === "true",
   };
 }
 
@@ -123,9 +126,15 @@ function restoreSettings() {
     Object.entries(controls).forEach(([key, control]) => {
       if (saved[key] !== undefined) control.value = saved[key];
     });
+    setAdvancedOpen(Boolean(saved.advancedOpen));
   } catch {
     localStorage.removeItem(storageKey);
   }
+}
+
+function setAdvancedOpen(isOpen) {
+  advancedToggle.setAttribute("aria-expanded", String(isOpen));
+  advancedPanel.hidden = !isOpen;
 }
 
 function preferredMime() {
@@ -646,6 +655,10 @@ formatSelect.addEventListener("input", () => {
   saveSettings();
 });
 resetImageCrop.addEventListener("click", resetImageCropSettings);
+advancedToggle.addEventListener("click", () => {
+  setAdvancedOpen(advancedToggle.getAttribute("aria-expanded") !== "true");
+  saveSettings();
+});
 previewButton.addEventListener("click", startPreview);
 
 async function decodeAudioDuration(url) {

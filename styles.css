@@ -242,6 +242,29 @@ h2 {
   padding-top: 4px;
 }
 
+.advancedSection {
+  display: grid;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.tabToggle {
+  background: #15171c;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.tabToggle[aria-expanded="true"] {
+  border-color: var(--focus);
+  background: #22252c;
+}
+
+.advancedPanel {
+  display: grid;
+  gap: 14px;
+  padding-top: 14px;
+}
+
 .cropControls,
 .filterControls,
 .backgroundControls {
@@ -249,6 +272,11 @@ h2 {
   gap: 12px;
   border-top: 1px solid var(--line);
   padding-top: 14px;
+}
+
+.cropControls {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .rangeField {

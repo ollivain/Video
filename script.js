@@ -232,6 +232,38 @@ function proxiedImageUrl(url) {
   return `https://images.weserv.nl/?url=${encodeURIComponent(withoutProtocol)}`;
 }
 
+function findMetaImage(html, baseUrl) {
+  const patterns = [
+    /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) return new URL(match[1].replaceAll("&amp;", "&"), baseUrl);
+  }
+
+  return null;
+}
+
+async function resolveImageFromPageUrl(url) {
+  const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url.toString())}`;
+  const response = await fetch(proxyUrl);
+  if (!response.ok) {
+    throw new Error("Sivulinkin avaaminen ei onnistunut.");
+  }
+
+  const html = await response.text();
+  const image = findMetaImage(html, url);
+  if (!image) {
+    throw new Error("Sivulta ei löytynyt esikatselukuvaa. Kopioi suora kuvan osoite tai tiputa kuva tiedostona.");
+  }
+
+  return image;
+}
+
 async function fetchImageBlob(url) {
   const response = await fetch(url.toString(), { mode: "cors" });
   const type = response.headers.get("content-type") || "";
@@ -247,15 +279,13 @@ async function loadImageFromRemoteUrl(inputUrl) {
     throw new Error("Anna kelvollinen http- tai https-linkki.");
   }
 
-  if (!isLikelyDirectImageUrl(url)) {
-    throw new Error("GitHub Pagesissa toimii suora kuvalinkki. Avaa Pinterest-kuva, kopioi kuvan osoite tai tiputa kuva tiedostona.");
-  }
+  const imageUrl = isLikelyDirectImageUrl(url) ? url : await resolveImageFromPageUrl(url);
 
   try {
-    const blob = await fetchImageBlob(url);
+    const blob = await fetchImageBlob(imageUrl);
     await loadImageFromBlob(blob, "Linkitetty kuva");
   } catch {
-    const blob = await fetchImageBlob(new URL(proxiedImageUrl(url)));
+    const blob = await fetchImageBlob(new URL(proxiedImageUrl(imageUrl)));
     await loadImageFromBlob(blob, "Linkitetty kuva");
   }
 }

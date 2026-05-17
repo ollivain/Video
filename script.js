@@ -54,6 +54,20 @@ const formats = {
 };
 
 const storageKey = "beat-video-maker-settings-v2";
+const defaultImageSettings = {
+  imageFit: "cover",
+  imageZoom: "100",
+  imageOffsetX: "0",
+  imageOffsetY: "0",
+  filterBlur: "0",
+  filterGrain: "0",
+  filterVintage: "0",
+  filterContrast: "100",
+  filterSaturation: "100",
+  backgroundMode: "black",
+  backgroundColorA: "#101114",
+  backgroundColorB: "#e8583d",
+};
 let previewFrameId = 0;
 let saveTimer = 0;
 
@@ -77,18 +91,6 @@ function settingsPayload() {
     pinterestQuery: pinterestQuery.value,
     formatSelect: formatSelect.value,
     titleText: titleText.value,
-    imageFit: imageFit.value,
-    imageZoom: imageZoom.value,
-    imageOffsetX: imageOffsetX.value,
-    imageOffsetY: imageOffsetY.value,
-    filterBlur: filterBlur.value,
-    filterGrain: filterGrain.value,
-    filterVintage: filterVintage.value,
-    filterContrast: filterContrast.value,
-    filterSaturation: filterSaturation.value,
-    backgroundMode: backgroundMode.value,
-    backgroundColorA: backgroundColorA.value,
-    backgroundColorB: backgroundColorB.value,
   };
 }
 
@@ -108,23 +110,12 @@ function restoreSettings() {
       pinterestQuery,
       formatSelect,
       titleText,
-      imageFit,
-      imageZoom,
-      imageOffsetX,
-      imageOffsetY,
-      filterBlur,
-      filterGrain,
-      filterVintage,
-      filterContrast,
-      filterSaturation,
-      backgroundMode,
-      backgroundColorA,
-      backgroundColorB,
     };
 
     Object.entries(controls).forEach(([key, control]) => {
       if (saved[key] !== undefined) control.value = saved[key];
     });
+    resetImageSettings({ redraw: false });
     setAdvancedOpen(false);
   } catch {
     localStorage.removeItem(storageKey);
@@ -393,7 +384,22 @@ function resetImageCropSettings() {
   imageOffsetX.value = "0";
   imageOffsetY.value = "0";
   drawPreview(0);
-  saveSettings();
+}
+
+function resetImageSettings({ redraw = true } = {}) {
+  imageFit.value = defaultImageSettings.imageFit;
+  imageZoom.value = defaultImageSettings.imageZoom;
+  imageOffsetX.value = defaultImageSettings.imageOffsetX;
+  imageOffsetY.value = defaultImageSettings.imageOffsetY;
+  filterBlur.value = defaultImageSettings.filterBlur;
+  filterGrain.value = defaultImageSettings.filterGrain;
+  filterVintage.value = defaultImageSettings.filterVintage;
+  filterContrast.value = defaultImageSettings.filterContrast;
+  filterSaturation.value = defaultImageSettings.filterSaturation;
+  backgroundMode.value = defaultImageSettings.backgroundMode;
+  backgroundColorA.value = defaultImageSettings.backgroundColorA;
+  backgroundColorB.value = defaultImageSettings.backgroundColorB;
+  if (redraw) drawPreview(0);
 }
 
 async function loadImageFromBlob(blob, name = "kuva") {
@@ -404,7 +410,7 @@ async function loadImageFromBlob(blob, name = "kuva") {
   await img.decode();
   state.image = img;
   state.imageName = name;
-  resetImageCropSettings();
+  resetImageSettings();
   imageStatus.textContent = `Kuva valittu: ${name}`;
   drawPreview(0);
   updateReadyState();
@@ -685,6 +691,13 @@ function startPreview() {
   imageUrl,
   pinterestQuery,
   titleText,
+].forEach((control) => {
+  control.addEventListener("input", () => {
+    saveSettings();
+  });
+});
+
+[
   imageFit,
   imageZoom,
   imageOffsetX,
@@ -700,7 +713,6 @@ function startPreview() {
 ].forEach((control) => {
   control.addEventListener("input", () => {
     drawPreview(0);
-    saveSettings();
   });
 });
 

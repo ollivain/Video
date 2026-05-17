@@ -89,7 +89,6 @@ function settingsPayload() {
     backgroundMode: backgroundMode.value,
     backgroundColorA: backgroundColorA.value,
     backgroundColorB: backgroundColorB.value,
-    advancedOpen: advancedToggle.getAttribute("aria-expanded") === "true",
   };
 }
 
@@ -126,7 +125,7 @@ function restoreSettings() {
     Object.entries(controls).forEach(([key, control]) => {
       if (saved[key] !== undefined) control.value = saved[key];
     });
-    setAdvancedOpen(Boolean(saved.advancedOpen));
+    setAdvancedOpen(false);
   } catch {
     localStorage.removeItem(storageKey);
   }

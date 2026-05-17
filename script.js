@@ -88,6 +88,17 @@ function coverRect(imgW, imgH, outW, outH, scaleBoost = 1) {
   };
 }
 
+function drawImageCoverInRect(image, rect, scaleBoost = 1) {
+  const imageRect = coverRect(image.width, image.height, rect.width, rect.height, scaleBoost);
+  ctx.drawImage(
+    image,
+    rect.x + imageRect.x,
+    rect.y + imageRect.y,
+    imageRect.width,
+    imageRect.height,
+  );
+}
+
 function drawRoundedPanel(x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -120,18 +131,34 @@ function drawPreview(progress = 0) {
   }
 
   const motion = 1;
-  const bgRect = coverRect(state.image.width, state.image.height, width, height, 1.12);
+  const isLandscape = formatSelect.value === "landscape";
 
-  ctx.save();
-  ctx.filter = "blur(42px) saturate(1.25) brightness(0.68)";
-  ctx.drawImage(state.image, bgRect.x, bgRect.y, bgRect.width, bgRect.height);
-  ctx.restore();
+  if (isLandscape) {
+    const squareSize = height;
+    const squareRect = {
+      x: (width - squareSize) / 2,
+      y: 0,
+      width: squareSize,
+      height: squareSize,
+    };
 
-  ctx.fillStyle = "rgba(8, 9, 12, 0.24)";
-  ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
+    drawImageCoverInRect(state.image, squareRect, motion);
+  } else {
+    const bgRect = coverRect(state.image.width, state.image.height, width, height, 1.12);
 
-  const mainRect = coverRect(state.image.width, state.image.height, width, height, motion);
-  ctx.drawImage(state.image, mainRect.x, mainRect.y, mainRect.width, mainRect.height);
+    ctx.save();
+    ctx.filter = "blur(42px) saturate(1.25) brightness(0.68)";
+    ctx.drawImage(state.image, bgRect.x, bgRect.y, bgRect.width, bgRect.height);
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(8, 9, 12, 0.24)";
+    ctx.fillRect(0, 0, width, height);
+
+    const mainRect = coverRect(state.image.width, state.image.height, width, height, motion);
+    ctx.drawImage(state.image, mainRect.x, mainRect.y, mainRect.width, mainRect.height);
+  }
 
   const vignette = ctx.createLinearGradient(0, height * 0.58, 0, height);
   vignette.addColorStop(0, "rgba(0,0,0,0)");
@@ -329,7 +356,6 @@ async function renderVideo() {
   const source = audioContext.createMediaElementSource(audio);
   const destination = audioContext.createMediaStreamDestination();
   source.connect(destination);
-  source.connect(audioContext.destination);
 
   const fps = 30;
   const canvasStream = canvas.captureStream(fps);

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beat Video Maker</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <div class="panel controls">
+          <div class="brand">
+            <span class="mark"></span>
+            <div>
+              <h1>Beat Video Maker</h1>
+              <p>Tee kuvasta ja biitistä ladattava videolooppi.</p>
+            </div>
+          </div>
+
+          <label class="dropzone" id="audioDrop">
+            <input id="audioInput" type="file" accept="audio/*">
+            <span class="dropIcon">♪</span>
+            <strong>Tiputa biitti tähän</strong>
+            <small id="audioName">MP3, WAV, M4A tai muu selaimen tukema ääni</small>
+          </label>
+
+          <div class="imageTools">
+            <label class="field">
+              <span>Pinterest- tai kuvalinkki</span>
+              <div class="urlRow">
+                <input id="imageUrl" type="url" placeholder="https://pin.it/... tai https://i.pinimg.com/...">
+                <button id="fetchImage" type="button">Hae</button>
+              </div>
+              <small id="imageStatus">Voit myös tiputtaa kuvatiedoston esikatselun päälle.</small>
+            </label>
+          </div>
+
+          <div class="settings">
+            <label class="field">
+              <span>Formaatti</span>
+              <select id="formatSelect">
+                <option value="story">Pystyvideo 1080 × 1920</option>
+                <option value="square">Neliö 1080 × 1080</option>
+                <option value="landscape">Vaaka 1920 × 1080</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Otsikko</span>
+              <input id="titleText" maxlength="48" placeholder="esim. midnight bounce">
+            </label>
+
+          </div>
+
+          <div class="actions">
+            <button id="renderButton" type="button" disabled>Tee video</button>
+            <a id="downloadLink" class="download" hidden>Lataa video</a>
+          </div>
+
+          <div class="progressShell" hidden>
+            <div class="progressBar" id="progressBar"></div>
+          </div>
+          <p class="notice" id="notice">Valitse biitti ja kuva, niin renderöinti avautuu.</p>
+        </div>
+
+        <div class="panel pinterestPanel">
+          <div class="panelHeader">
+            <span class="pinMark">P</span>
+            <div>
+              <h2>Pinterest</h2>
+              <p>Hae kuva ja tuo valittu pin takaisin videoon.</p>
+            </div>
+          </div>
+
+          <form id="pinterestForm" class="pinSearchForm" action="https://www.pinterest.com/search/pins/" method="get" target="_blank">
+            <label class="field">
+              <span>Haku Pinterestistä</span>
+              <input id="pinterestQuery" name="q" placeholder="esim. dark anime street" autocomplete="off">
+            </label>
+            <button id="pinterestSearch" type="submit">Avaa haku</button>
+          </form>
+
+          <div class="pinActions">
+            <button id="openPinterestHome" type="button" class="secondaryButton">Pinterest</button>
+            <button id="pastePinterest" type="button" class="secondaryButton">Liitä kopioitu linkki</button>
+          </div>
+
+          <div class="pinSteps">
+            <span>1. Avaa Pinterest</span>
+            <span>2. Kopioi kuvan linkki</span>
+            <span>3. Palaa ja liitä linkki</span>
+          </div>
+        </div>
+
+        <label class="stageWrap" id="imageDrop">
+          <input id="imageInput" type="file" accept="image/*">
+          <canvas id="preview" width="1080" height="1920" aria-label="Videon esikatselu"></canvas>
+        </label>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

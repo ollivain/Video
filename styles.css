@@ -1,0 +1,350 @@
+:root {
+  color-scheme: dark;
+  --bg: #101114;
+  --panel: #191b20;
+  --panel-strong: #202329;
+  --text: #f4f0e8;
+  --muted: #a9acb5;
+  --line: #343842;
+  --accent: #e8583d;
+  --accent-2: #40b7a2;
+  --focus: #f3c96b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 0%, #26323b 0, transparent 32rem), var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, 390px) minmax(280px, 340px) minmax(320px, 1fr);
+  gap: 24px;
+  max-width: 1480px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+
+.panel {
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 28%);
+}
+
+.controls {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, transparent 42%, rgb(255 255 255 / 42%) 42% 48%, transparent 48%),
+    linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.dropzone,
+.imageDrop {
+  border: 1px dashed #5a606d;
+  background: #15171c;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.dropzone {
+  min-height: 155px;
+  padding: 18px;
+  gap: 6px;
+}
+
+.dropzone:hover,
+.dropzone.dragOver,
+.imageDrop:hover,
+.imageDrop.dragOver {
+  border-color: var(--focus);
+  background: #1d2027;
+}
+
+.dropzone input,
+.imageDrop input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dropIcon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #272b34;
+  color: var(--focus);
+  font-size: 28px;
+}
+
+small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span,
+.switch span {
+  color: var(--text);
+  font-size: 0.93rem;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #111318;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 11px 12px;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+button:focus-visible,
+a:focus-visible {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgb(243 201 107 / 18%);
+}
+
+.urlRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+button,
+.download {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #101114;
+  background: var(--focus);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#fetchImage {
+  background: #d9dee8;
+}
+
+.secondaryButton {
+  background: #d9dee8;
+}
+
+.pinterestPanel {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.pinMark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e60023;
+  color: #fff;
+  font-size: 1.55rem;
+  font-family: Georgia, serif;
+  font-weight: 800;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  letter-spacing: 0;
+}
+
+.pinSearchForm,
+.pinActions {
+  display: grid;
+  gap: 10px;
+}
+
+.pinSteps {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.pinSteps span {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 11px;
+  background: #15171c;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.settings {
+  display: grid;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--focus);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.progressShell {
+  height: 10px;
+  background: #111318;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.progressBar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--focus), var(--accent-2));
+}
+
+.notice {
+  min-height: 42px;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.stageWrap {
+  position: relative;
+  min-height: calc(100vh - 48px);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.stageWrap input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+canvas {
+  width: min(100%, 56vh);
+  max-height: calc(100vh - 48px);
+  aspect-ratio: 9 / 16;
+  background: #0b0c0f;
+  border: 1px dashed #5a606d;
+  border-radius: 8px;
+  box-shadow: 0 28px 80px rgb(0 0 0 / 40%);
+}
+
+.stageWrap:hover canvas,
+.stageWrap.dragOver canvas {
+  border-color: var(--focus);
+}
+
+@media (max-width: 860px) {
+  .shell {
+    padding: 14px;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .stageWrap {
+    min-height: 70vh;
+  }
+
+  canvas {
+    width: min(100%, 52vh);
+    max-height: 68vh;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}

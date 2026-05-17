@@ -242,7 +242,9 @@ h2 {
   padding-top: 4px;
 }
 
-.cropControls {
+.cropControls,
+.filterControls,
+.backgroundControls {
   display: grid;
   gap: 12px;
   border-top: 1px solid var(--line);
@@ -265,6 +267,29 @@ input[type="range"] {
   accent-color: var(--focus);
 }
 
+.colorRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.swatchField {
+  display: grid;
+  gap: 8px;
+}
+
+.swatchField span {
+  color: var(--text);
+  font-size: 0.93rem;
+  font-weight: 700;
+}
+
+input[type="color"] {
+  height: 42px;
+  padding: 4px;
+  cursor: pointer;
+}
+
 .switch {
   display: flex;
   align-items: center;
@@ -281,6 +306,15 @@ input[type="range"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+#previewButton,
+.download {
+  grid-column: span 1;
+}
+
+.download {
+  display: block;
 }
 
 .progressShell {

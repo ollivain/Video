@@ -18,6 +18,11 @@
             </div>
           </div>
 
+          <label class="field">
+            <span>Projektin nimi</span>
+            <input id="projectName" maxlength="60" placeholder="esim. LeBron edit">
+          </label>
+
           <label class="dropzone" id="audioDrop">
             <input id="audioInput" type="file" accept="audio/*">
             <span class="dropIcon">♪</span>
@@ -78,9 +83,60 @@
               <button id="resetImageCrop" type="button" class="secondaryButton">Nollaa rajaus</button>
             </div>
 
+            <div class="filterControls">
+              <label class="rangeField">
+                <span>Blur</span>
+                <input id="filterBlur" type="range" min="0" max="24" value="0">
+              </label>
+
+              <label class="rangeField">
+                <span>Grain</span>
+                <input id="filterGrain" type="range" min="0" max="70" value="0">
+              </label>
+
+              <label class="rangeField">
+                <span>Vintage</span>
+                <input id="filterVintage" type="range" min="0" max="100" value="0">
+              </label>
+
+              <label class="rangeField">
+                <span>Contrast</span>
+                <input id="filterContrast" type="range" min="50" max="180" value="100">
+              </label>
+
+              <label class="rangeField">
+                <span>Saturation</span>
+                <input id="filterSaturation" type="range" min="0" max="220" value="100">
+              </label>
+            </div>
+
+            <div class="backgroundControls">
+              <label class="field">
+                <span>Tausta</span>
+                <select id="backgroundMode">
+                  <option value="black">Mustat reunat</option>
+                  <option value="blur">Blur-tausta</option>
+                  <option value="color">Värillinen tausta</option>
+                  <option value="gradient">Gradientti</option>
+                </select>
+              </label>
+
+              <div class="colorRow">
+                <label class="swatchField">
+                  <span>Väri 1</span>
+                  <input id="backgroundColorA" type="color" value="#101114">
+                </label>
+                <label class="swatchField">
+                  <span>Väri 2</span>
+                  <input id="backgroundColorB" type="color" value="#e8583d">
+                </label>
+              </div>
+            </div>
+
           </div>
 
           <div class="actions">
+            <button id="previewButton" type="button">Esikatsele</button>
             <button id="renderButton" type="button" disabled>Tee video</button>
             <a id="downloadLink" class="download" hidden>Lataa video</a>
           </div>

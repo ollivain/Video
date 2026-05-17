@@ -9,6 +9,7 @@ const state = {
 
 const canvas = document.querySelector("#preview");
 const ctx = canvas.getContext("2d");
+const projectName = document.querySelector("#projectName");
 const audioInput = document.querySelector("#audioInput");
 const imageInput = document.querySelector("#imageInput");
 const audioDrop = document.querySelector("#audioDrop");
@@ -29,6 +30,15 @@ const imageZoom = document.querySelector("#imageZoom");
 const imageOffsetX = document.querySelector("#imageOffsetX");
 const imageOffsetY = document.querySelector("#imageOffsetY");
 const resetImageCrop = document.querySelector("#resetImageCrop");
+const filterBlur = document.querySelector("#filterBlur");
+const filterGrain = document.querySelector("#filterGrain");
+const filterVintage = document.querySelector("#filterVintage");
+const filterContrast = document.querySelector("#filterContrast");
+const filterSaturation = document.querySelector("#filterSaturation");
+const backgroundMode = document.querySelector("#backgroundMode");
+const backgroundColorA = document.querySelector("#backgroundColorA");
+const backgroundColorB = document.querySelector("#backgroundColorB");
+const previewButton = document.querySelector("#previewButton");
 const renderButton = document.querySelector("#renderButton");
 const downloadLink = document.querySelector("#downloadLink");
 const notice = document.querySelector("#notice");
@@ -41,6 +51,10 @@ const formats = {
   landscape: [1920, 1080],
 };
 
+const storageKey = "beat-video-maker-settings-v2";
+let previewFrameId = 0;
+let saveTimer = 0;
+
 function setNotice(message) {
   notice.textContent = message;
 }
@@ -51,6 +65,67 @@ function setBusy(isBusy) {
   pinterestSearch.disabled = isBusy;
   openPinterestHome.disabled = isBusy;
   pastePinterest.disabled = isBusy;
+  previewButton.disabled = isBusy;
+}
+
+function settingsPayload() {
+  return {
+    projectName: projectName.value,
+    imageUrl: imageUrl.value,
+    pinterestQuery: pinterestQuery.value,
+    formatSelect: formatSelect.value,
+    titleText: titleText.value,
+    imageFit: imageFit.value,
+    imageZoom: imageZoom.value,
+    imageOffsetX: imageOffsetX.value,
+    imageOffsetY: imageOffsetY.value,
+    filterBlur: filterBlur.value,
+    filterGrain: filterGrain.value,
+    filterVintage: filterVintage.value,
+    filterContrast: filterContrast.value,
+    filterSaturation: filterSaturation.value,
+    backgroundMode: backgroundMode.value,
+    backgroundColorA: backgroundColorA.value,
+    backgroundColorB: backgroundColorB.value,
+  };
+}
+
+function saveSettings() {
+  clearTimeout(saveTimer);
+  saveTimer = window.setTimeout(() => {
+    localStorage.setItem(storageKey, JSON.stringify(settingsPayload()));
+  }, 120);
+}
+
+function restoreSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    const controls = {
+      projectName,
+      imageUrl,
+      pinterestQuery,
+      formatSelect,
+      titleText,
+      imageFit,
+      imageZoom,
+      imageOffsetX,
+      imageOffsetY,
+      filterBlur,
+      filterGrain,
+      filterVintage,
+      filterContrast,
+      filterSaturation,
+      backgroundMode,
+      backgroundColorA,
+      backgroundColorB,
+    };
+
+    Object.entries(controls).forEach(([key, control]) => {
+      if (saved[key] !== undefined) control.value = saved[key];
+    });
+  } catch {
+    localStorage.removeItem(storageKey);
+  }
 }
 
 function preferredMime() {
@@ -130,6 +205,89 @@ function drawImageInRect(image, rect, mode, zoom, offsetX, offsetY) {
   ctx.restore();
 }
 
+function imageFilter() {
+  const blur = Number(filterBlur.value);
+  const vintage = Number(filterVintage.value);
+  const contrast = Number(filterContrast.value);
+  const saturation = Number(filterSaturation.value);
+  const sepia = Math.round(vintage * 0.7);
+  const brightness = Math.max(82, 100 - vintage * 0.12);
+  return `blur(${blur}px) contrast(${contrast}%) saturate(${saturation}%) sepia(${sepia}%) brightness(${brightness}%)`;
+}
+
+function drawBackground(rect) {
+  const mode = backgroundMode.value;
+  if (mode === "blur" && state.image) {
+    const bgRect = coverRect(state.image.width, state.image.height, canvas.width, canvas.height, 1.12);
+    ctx.save();
+    ctx.filter = "blur(42px) saturate(1.2) brightness(0.58)";
+    ctx.drawImage(state.image, bgRect.x, bgRect.y, bgRect.width, bgRect.height);
+    ctx.restore();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.24)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  if (mode === "gradient") {
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, backgroundColorA.value);
+    gradient.addColorStop(1, backgroundColorB.value);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  ctx.fillStyle = mode === "color" ? backgroundColorA.value : "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawVintageOverlay(rect) {
+  const amount = Number(filterVintage.value) / 100;
+  if (!amount) return;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rect.x, rect.y, rect.width, rect.height);
+  ctx.clip();
+  ctx.fillStyle = `rgba(232, 88, 61, ${amount * 0.09})`;
+  ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+  ctx.fillStyle = `rgba(243, 201, 107, ${amount * 0.05})`;
+  ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+  ctx.restore();
+}
+
+function drawGrain(rect) {
+  const amount = Number(filterGrain.value);
+  if (!amount) return;
+
+  const grainCanvas = document.createElement("canvas");
+  const grainWidth = 160;
+  const grainHeight = Math.max(90, Math.round(160 * rect.height / rect.width));
+  grainCanvas.width = grainWidth;
+  grainCanvas.height = grainHeight;
+  const grainCtx = grainCanvas.getContext("2d");
+  const imageData = grainCtx.createImageData(grainWidth, grainHeight);
+
+  for (let index = 0; index < imageData.data.length; index += 4) {
+    const shade = 110 + Math.random() * 145;
+    imageData.data[index] = shade;
+    imageData.data[index + 1] = shade;
+    imageData.data[index + 2] = shade;
+    imageData.data[index + 3] = 255;
+  }
+
+  grainCtx.putImageData(imageData, 0, 0);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rect.x, rect.y, rect.width, rect.height);
+  ctx.clip();
+  ctx.globalAlpha = amount / 180;
+  ctx.globalCompositeOperation = "overlay";
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(grainCanvas, rect.x, rect.y, rect.width, rect.height);
+  ctx.restore();
+}
+
 function drawRoundedPanel(x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -167,32 +325,22 @@ function drawPreview(progress = 0) {
   const zoom = Number(imageZoom.value) / 100;
   const offsetX = Number(imageOffsetX.value);
   const offsetY = Number(imageOffsetY.value);
+  const imageRect = isLandscape
+    ? {
+        x: (width - height) / 2,
+        y: 0,
+        width: height,
+        height,
+      }
+    : { x: 0, y: 0, width, height };
 
-  if (isLandscape) {
-    const squareSize = height;
-    const squareRect = {
-      x: (width - squareSize) / 2,
-      y: 0,
-      width: squareSize,
-      height: squareSize,
-    };
-
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, width, height);
-    drawImageInRect(state.image, squareRect, fitMode, zoom, offsetX, offsetY);
-  } else {
-    const bgRect = coverRect(state.image.width, state.image.height, width, height, 1.12);
-
-    ctx.save();
-    ctx.filter = "blur(42px) saturate(1.25) brightness(0.68)";
-    ctx.drawImage(state.image, bgRect.x, bgRect.y, bgRect.width, bgRect.height);
-    ctx.restore();
-
-    ctx.fillStyle = "rgba(8, 9, 12, 0.24)";
-    ctx.fillRect(0, 0, width, height);
-
-    drawImageInRect(state.image, { x: 0, y: 0, width, height }, fitMode, zoom * motion, offsetX, offsetY);
-  }
+  drawBackground(imageRect);
+  ctx.save();
+  ctx.filter = imageFilter();
+  drawImageInRect(state.image, imageRect, fitMode, zoom * motion, offsetX, offsetY);
+  ctx.restore();
+  drawVintageOverlay(imageRect);
+  drawGrain(imageRect);
 
   const vignette = ctx.createLinearGradient(0, height * 0.58, 0, height);
   vignette.addColorStop(0, "rgba(0,0,0,0)");
@@ -237,6 +385,7 @@ function resetImageCropSettings() {
   imageOffsetX.value = "0";
   imageOffsetY.value = "0";
   drawPreview(0);
+  saveSettings();
 }
 
 async function loadImageFromBlob(blob, name = "kuva") {
@@ -251,6 +400,7 @@ async function loadImageFromBlob(blob, name = "kuva") {
   imageStatus.textContent = `Kuva valittu: ${name}`;
   drawPreview(0);
   updateReadyState();
+  saveSettings();
 }
 
 function parseImageUrl(value) {
@@ -448,12 +598,55 @@ pastePinterest.addEventListener("click", async () => {
   }
 });
 
-[titleText, imageFit, imageZoom, imageOffsetX, imageOffsetY].forEach((control) => {
-  control.addEventListener("input", () => drawPreview(0));
+function startPreview() {
+  cancelAnimationFrame(previewFrameId);
+  const start = performance.now();
+  const duration = 5000;
+
+  function frame(time) {
+    const elapsed = time - start;
+    const progress = Math.min(elapsed / duration, 1);
+    drawPreview(progress);
+    progressBar.style.width = `${Math.round(progress * 100)}%`;
+    progressShell.hidden = false;
+    if (progress < 1) {
+      previewFrameId = requestAnimationFrame(frame);
+    }
+  }
+
+  previewFrameId = requestAnimationFrame(frame);
+}
+
+[
+  projectName,
+  imageUrl,
+  pinterestQuery,
+  titleText,
+  imageFit,
+  imageZoom,
+  imageOffsetX,
+  imageOffsetY,
+  filterBlur,
+  filterGrain,
+  filterVintage,
+  filterContrast,
+  filterSaturation,
+  backgroundMode,
+  backgroundColorA,
+  backgroundColorB,
+].forEach((control) => {
+  control.addEventListener("input", () => {
+    drawPreview(0);
+    saveSettings();
+  });
 });
 
-formatSelect.addEventListener("input", setFormat);
+formatSelect.addEventListener("input", () => {
+  setFormat();
+  saveSettings();
+});
 resetImageCrop.addEventListener("click", resetImageCropSettings);
+previewButton.addEventListener("click", startPreview);
 
 async function decodeAudioDuration(url) {
   const audio = new Audio();
@@ -548,7 +741,7 @@ async function renderVideo() {
   state.videoBlob = new Blob(chunks, { type: mimeType });
   state.renderUrl = URL.createObjectURL(state.videoBlob);
 
-  const base = fileBaseName(titleText.value || state.audioFile.name);
+  const base = fileBaseName(projectName.value || titleText.value || state.audioFile.name);
   downloadLink.href = state.renderUrl;
   downloadLink.download = `${base}.${extension}`;
   downloadLink.textContent = `Lataa ${extension.toUpperCase()}`;
@@ -566,5 +759,6 @@ renderButton.addEventListener("click", () => {
   });
 });
 
+restoreSettings();
 setFormat();
 setBusy(false);

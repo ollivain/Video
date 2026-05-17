@@ -54,6 +54,47 @@ function findMetaImage(html, baseUrl) {
   return null;
 }
 
+function isPinterestPageUrl(url) {
+  return /(^|\.)pinterest\./i.test(url.hostname) || url.hostname === "pin.it";
+}
+
+async function resolvePinterestOembedImage(pageUrl, headers) {
+  const endpoint = new URL("https://www.pinterest.com/oembed.json");
+  endpoint.searchParams.set("url", pageUrl.toString());
+
+  const response = await fetch(endpoint, {
+    headers: {
+      ...headers,
+      accept: "application/json,text/plain,*/*",
+    },
+    redirect: "follow",
+  });
+
+  if (!response.ok) return null;
+
+  const payload = await response.json().catch(() => null);
+  const image = payload?.thumbnail_url || payload?.url;
+  return image ? new URL(image, pageUrl).toString() : null;
+}
+
+async function fetchImage(imageUrl, headers, sourceLabel = "Kuvan") {
+  const response = await fetch(imageUrl, { headers, redirect: "follow" });
+  if (!response.ok) {
+    return { error: `${sourceLabel} haku epäonnistui (${response.status}).` };
+  }
+
+  const type = response.headers.get("content-type") || "";
+  if (!type.startsWith("image/")) {
+    return { error: "Linkki ei palauttanut kuvatiedostoa." };
+  }
+
+  return {
+    body: Buffer.from(await response.arrayBuffer()),
+    type: type.split(";")[0],
+    source: response.url,
+  };
+}
+
 async function fetchImageFromUrl(inputUrl) {
   const url = safeUrl(inputUrl);
   if (!url) {
@@ -61,11 +102,26 @@ async function fetchImageFromUrl(inputUrl) {
   }
 
   const headers = {
-    "accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-    "user-agent": "Mozilla/5.0 BeatCanvas/1.0",
+    accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    referer: "https://www.pinterest.com/",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
   };
 
-  const first = await fetch(url, { headers, redirect: "follow" });
+  if (isPinterestPageUrl(url) && !url.hostname.includes("pinimg.com")) {
+    const oembedImage = await resolvePinterestOembedImage(url, headers).catch(() => null);
+    if (oembedImage) {
+      const result = await fetchImage(oembedImage, headers, "Pinterest-kuvan");
+      if (!result.error) return result;
+    }
+  }
+
+  let first;
+  try {
+    first = await fetch(url, { headers, redirect: "follow" });
+  } catch {
+    return { error: "Linkin avaaminen epäonnistui. Kokeile suoraa kuvan osoitetta tai tiputa kuva tiedostona." };
+  }
+
   if (!first.ok) {
     return { error: `Kuvan haku epäonnistui (${first.status}).` };
   }
@@ -85,21 +141,7 @@ async function fetchImageFromUrl(inputUrl) {
     return { error: "En löytänyt sivulta jaettavaa kuvaa. Kokeile avata kuva Pinterestissä ja kopioida suora kuvalinkki, tai pudota kuva tiedostona." };
   }
 
-  const second = await fetch(metaImage, { headers, redirect: "follow" });
-  if (!second.ok) {
-    return { error: `Pinterest-kuvan haku epäonnistui (${second.status}).` };
-  }
-
-  const secondType = second.headers.get("content-type") || "";
-  if (!secondType.startsWith("image/")) {
-    return { error: "Linkistä löytynyt esikatselu ei ollut kuvatiedosto." };
-  }
-
-  return {
-    body: Buffer.from(await second.arrayBuffer()),
-    type: secondType.split(";")[0],
-    source: second.url,
-  };
+  return fetchImage(metaImage, headers, "Pinterest-kuvan");
 }
 
 const server = http.createServer(async (req, res) => {

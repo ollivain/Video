@@ -428,6 +428,10 @@ function isLikelyDirectImageUrl(url) {
     || url.hostname.includes("images.pexels.com");
 }
 
+function isPinterestPageUrl(url) {
+  return /(^|\.)pinterest\./i.test(url.hostname) || url.hostname === "pin.it";
+}
+
 function proxiedImageUrl(url) {
   const withoutProtocol = url.toString().replace(/^https?:\/\//i, "");
   return `https://images.weserv.nl/?url=${encodeURIComponent(withoutProtocol)}`;
@@ -449,11 +453,50 @@ function findMetaImage(html, baseUrl) {
   return null;
 }
 
+async function fetchJsonWithFallback(url) {
+  const urls = [
+    url.toString(),
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url.toString())}`,
+  ];
+
+  for (const candidate of urls) {
+    try {
+      const response = await fetch(candidate);
+      if (!response.ok) continue;
+      return await response.json();
+    } catch {
+      // Try the next resolver.
+    }
+  }
+
+  return null;
+}
+
+async function resolvePinterestOembedImage(url) {
+  const endpoint = new URL("https://www.pinterest.com/oembed.json");
+  endpoint.searchParams.set("url", url.toString());
+
+  const payload = await fetchJsonWithFallback(endpoint);
+  const image = payload?.thumbnail_url || payload?.url;
+  return image ? new URL(image, url) : null;
+}
+
 async function resolveImageFromPageUrl(url) {
+  if (isPinterestPageUrl(url)) {
+    const oembedImage = await resolvePinterestOembedImage(url).catch(() => null);
+    if (oembedImage) return oembedImage;
+  }
+
   const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url.toString())}`;
-  const response = await fetch(proxyUrl);
+  let response;
+  try {
+    response = await fetch(proxyUrl);
+  } catch {
+    throw new Error("Linkin lataus ei onnistunut. Kokeile suoraa kuvan osoitetta tai tiputa kuva tiedostona.");
+  }
+
   if (!response.ok) {
-    throw new Error("Sivulinkin avaaminen ei onnistunut.");
+    throw new Error("Sivulinkin avaaminen ei onnistunut. Kokeile suoraa kuvan osoitetta tai tiputa kuva tiedostona.");
   }
 
   const html = await response.text();
@@ -466,7 +509,13 @@ async function resolveImageFromPageUrl(url) {
 }
 
 async function fetchImageBlob(url) {
-  const response = await fetch(url.toString(), { mode: "cors" });
+  let response;
+  try {
+    response = await fetch(url.toString(), { mode: "cors" });
+  } catch {
+    throw new Error("Kuvan lataus ei onnistunut suoraan.");
+  }
+
   const type = response.headers.get("content-type") || "";
   if (!response.ok || !type.startsWith("image/")) {
     throw new Error("Linkki ei palauttanut kuvatiedostoa.");
@@ -551,6 +600,7 @@ async function fetchImageFromInput() {
       return;
     }
 
+    let serverError = null;
     try {
       const response = await fetch(`/api/image?url=${encodeURIComponent(url)}`);
       if (!response.ok) {
@@ -560,8 +610,13 @@ async function fetchImageFromInput() {
 
       const blob = await response.blob();
       await loadImageFromBlob(blob, "Pinterest-kuva");
-    } catch {
-      await loadImageFromRemoteUrl(url);
+    } catch (error) {
+      serverError = error;
+      try {
+        await loadImageFromRemoteUrl(url);
+      } catch {
+        throw serverError;
+      }
     }
   } catch (error) {
     imageStatus.textContent = error.message;

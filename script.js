@@ -99,6 +99,29 @@ function drawImageCoverInRect(image, rect, scaleBoost = 1) {
   );
 }
 
+function containRect(imgW, imgH, outW, outH) {
+  const scale = Math.min(outW / imgW, outH / imgH);
+  const width = imgW * scale;
+  const height = imgH * scale;
+  return {
+    x: (outW - width) / 2,
+    y: (outH - height) / 2,
+    width,
+    height,
+  };
+}
+
+function drawImageContainInRect(image, rect) {
+  const imageRect = containRect(image.width, image.height, rect.width, rect.height);
+  ctx.drawImage(
+    image,
+    rect.x + imageRect.x,
+    rect.y + imageRect.y,
+    imageRect.width,
+    imageRect.height,
+  );
+}
+
 function drawRoundedPanel(x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -144,7 +167,7 @@ function drawPreview(progress = 0) {
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
-    drawImageCoverInRect(state.image, squareRect, motion);
+    drawImageContainInRect(state.image, squareRect);
   } else {
     const bgRect = coverRect(state.image.width, state.image.height, width, height, 1.12);
 

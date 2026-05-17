@@ -210,6 +210,56 @@ async function loadImageFromBlob(blob, name = "kuva") {
   updateReadyState();
 }
 
+function parseImageUrl(value) {
+  try {
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+function isLikelyDirectImageUrl(url) {
+  return /\.(avif|gif|jpe?g|png|webp)(\?.*)?$/i.test(url.pathname)
+    || url.hostname.includes("pinimg.com")
+    || url.hostname.includes("images.unsplash.com")
+    || url.hostname.includes("images.pexels.com");
+}
+
+function proxiedImageUrl(url) {
+  const withoutProtocol = url.toString().replace(/^https?:\/\//i, "");
+  return `https://images.weserv.nl/?url=${encodeURIComponent(withoutProtocol)}`;
+}
+
+async function fetchImageBlob(url) {
+  const response = await fetch(url.toString(), { mode: "cors" });
+  const type = response.headers.get("content-type") || "";
+  if (!response.ok || !type.startsWith("image/")) {
+    throw new Error("Linkki ei palauttanut kuvatiedostoa.");
+  }
+  return response.blob();
+}
+
+async function loadImageFromRemoteUrl(inputUrl) {
+  const url = parseImageUrl(inputUrl);
+  if (!url) {
+    throw new Error("Anna kelvollinen http- tai https-linkki.");
+  }
+
+  if (!isLikelyDirectImageUrl(url)) {
+    throw new Error("GitHub Pagesissa toimii suora kuvalinkki. Avaa Pinterest-kuva, kopioi kuvan osoite tai tiputa kuva tiedostona.");
+  }
+
+  try {
+    const blob = await fetchImageBlob(url);
+    await loadImageFromBlob(blob, "Linkitetty kuva");
+  } catch {
+    const blob = await fetchImageBlob(new URL(proxiedImageUrl(url)));
+    await loadImageFromBlob(blob, "Linkitetty kuva");
+  }
+}
+
 function loadAudio(file) {
   if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
   state.audioFile = file;
@@ -264,14 +314,24 @@ async function fetchImageFromInput() {
   try {
     setBusy(true);
     imageStatus.textContent = "Haen kuvaa...";
-    const response = await fetch(`/api/image?url=${encodeURIComponent(url)}`);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || "Kuvan haku epäonnistui.");
+
+    if (location.hostname.endsWith("github.io")) {
+      await loadImageFromRemoteUrl(url);
+      return;
     }
 
-    const blob = await response.blob();
-    await loadImageFromBlob(blob, "Pinterest-kuva");
+    try {
+      const response = await fetch(`/api/image?url=${encodeURIComponent(url)}`);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Kuvan haku epäonnistui.");
+      }
+
+      const blob = await response.blob();
+      await loadImageFromBlob(blob, "Pinterest-kuva");
+    } catch {
+      await loadImageFromRemoteUrl(url);
+    }
   } catch (error) {
     imageStatus.textContent = error.message;
   } finally {

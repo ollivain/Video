@@ -40,7 +40,7 @@ select {
   gap: 24px;
   max-width: 1480px;
   margin: 0 auto;
-  align-items: stretch;
+  align-items: start;
 }
 
 .panel {

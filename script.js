@@ -78,9 +78,6 @@ function setFormat() {
   canvas.width = width;
   canvas.height = height;
   canvas.style.aspectRatio = `${width} / ${height}`;
-  if (formatSelect.value === "landscape" && imageFit.value === "cover") {
-    imageFit.value = "contain";
-  }
   drawPreview(0);
 }
 
@@ -235,7 +232,7 @@ function updateReadyState() {
 }
 
 function resetImageCropSettings() {
-  imageFit.value = formatSelect.value === "landscape" ? "contain" : "cover";
+  imageFit.value = "cover";
   imageZoom.value = "100";
   imageOffsetX.value = "0";
   imageOffsetY.value = "0";

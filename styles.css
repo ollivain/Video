@@ -1,14 +1,15 @@
 :root {
   color-scheme: dark;
-  --bg: #101114;
-  --panel: #191b20;
-  --panel-strong: #202329;
+  --bg: #0d0f13;
+  --panel: #181b21;
+  --panel-strong: #20242c;
   --text: #f4f0e8;
   --muted: #a9acb5;
-  --line: #343842;
+  --line: #303641;
   --accent: #e8583d;
   --accent-2: #40b7a2;
   --focus: #f3c96b;
+  --surface: #111419;
 }
 
 * {
@@ -18,7 +19,9 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at 20% 0%, #26323b 0, transparent 32rem), var(--bg);
+  background:
+    linear-gradient(135deg, rgb(64 183 162 / 10%), transparent 32rem),
+    linear-gradient(180deg, #141820 0%, var(--bg) 42%, #090a0d 100%);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -31,27 +34,30 @@ select {
 
 .shell {
   min-height: 100vh;
-  padding: 24px;
+  padding: clamp(18px, 3vw, 40px);
+  display: grid;
+  align-items: center;
 }
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(300px, 390px) minmax(280px, 340px) minmax(320px, 1fr);
-  gap: 24px;
-  max-width: 1480px;
+  grid-template-columns: minmax(330px, 390px) minmax(260px, 320px) minmax(460px, 760px);
+  gap: clamp(18px, 2vw, 28px);
+  max-width: 1540px;
+  width: 100%;
   margin: 0 auto;
   align-items: start;
 }
 
 .panel {
-  background: color-mix(in srgb, var(--panel) 94%, transparent);
-  border: 1px solid var(--line);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 54%, transparent), color-mix(in srgb, var(--panel) 96%, transparent));
+  border: 1px solid rgb(255 255 255 / 9%);
   border-radius: 8px;
-  box-shadow: 0 24px 70px rgb(0 0 0 / 28%);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 34%), inset 0 1px 0 rgb(255 255 255 / 4%);
 }
 
 .controls {
-  padding: 22px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -75,8 +81,8 @@ select {
 
 h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 4vw, 2.1rem);
-  line-height: 1;
+  font-size: clamp(1.55rem, 2.2vw, 1.95rem);
+  line-height: 1.05;
   letter-spacing: 0;
 }
 
@@ -88,8 +94,8 @@ p {
 
 .dropzone,
 .imageDrop {
-  border: 1px dashed #5a606d;
-  background: #15171c;
+  border: 1px dashed #5b6474;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -109,7 +115,7 @@ p {
 .imageDrop:hover,
 .imageDrop.dragOver {
   border-color: var(--focus);
-  background: #1d2027;
+  background: #1c2028;
 }
 
 .dropzone input,
@@ -125,7 +131,7 @@ p {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #272b34;
+  background: linear-gradient(180deg, #2b303a, #20242d);
   color: var(--focus);
   font-size: 28px;
 }
@@ -151,11 +157,12 @@ input,
 select {
   width: 100%;
   border: 1px solid var(--line);
-  background: #111318;
+  background: #0f1217;
   color: var(--text);
   border-radius: 8px;
   padding: 11px 12px;
   outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
 input:focus,
@@ -178,11 +185,19 @@ button,
   border-radius: 8px;
   padding: 12px 16px;
   color: #101114;
-  background: var(--focus);
+  background: linear-gradient(180deg, #f5d377, var(--focus));
   font-weight: 800;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 28%), 0 10px 22px rgb(0 0 0 / 18%);
+  transition: transform 150ms ease, filter 150ms ease;
+}
+
+button:not(:disabled):hover,
+.download:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
 }
 
 button:disabled {
@@ -191,15 +206,15 @@ button:disabled {
 }
 
 #fetchImage {
-  background: #d9dee8;
+  background: linear-gradient(180deg, #eef3fb, #d8deea);
 }
 
 .secondaryButton {
-  background: #d9dee8;
+  background: linear-gradient(180deg, #eef3fb, #d8deea);
 }
 
 .pinterestPanel {
-  padding: 22px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -212,8 +227,8 @@ button:disabled {
 }
 
 .pinMark {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   color: #e60023;
   display: inline-flex;
   align-items: center;
@@ -253,9 +268,10 @@ h2 {
 }
 
 .tabToggle {
-  background: #15171c;
+  background: #12151b;
   color: var(--text);
   border: 1px solid var(--line);
+  box-shadow: none;
 }
 
 .tabToggle[aria-expanded="true"] {
@@ -355,7 +371,7 @@ input[type="color"] {
 
 .progressShell {
   height: 10px;
-  background: #111318;
+  background: #0f1217;
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -375,10 +391,17 @@ input[type="color"] {
 
 .stageWrap {
   position: relative;
-  min-height: calc(100vh - 48px);
+  min-height: min(720px, calc(100vh - 80px));
   display: grid;
   place-items: center;
   cursor: pointer;
+  padding: clamp(14px, 2vw, 24px);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 4%), transparent 32%),
+    color-mix(in srgb, var(--panel) 42%, transparent);
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 8px;
+  box-shadow: 0 28px 90px rgb(0 0 0 / 28%);
 }
 
 .stageWrap input {
@@ -388,13 +411,13 @@ input[type="color"] {
 }
 
 canvas {
-  width: min(100%, 56vh);
-  max-height: calc(100vh - 48px);
+  width: min(100%, 760px);
+  max-height: calc(100vh - 128px);
   aspect-ratio: 9 / 16;
   background: #0b0c0f;
-  border: 1px dashed #5a606d;
+  border: 1px dashed #5b6474;
   border-radius: 8px;
-  box-shadow: 0 28px 80px rgb(0 0 0 / 40%);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 42%);
 }
 
 .stageWrap:hover canvas,
@@ -405,6 +428,7 @@ canvas {
 @media (max-width: 860px) {
   .shell {
     padding: 14px;
+    align-items: start;
   }
 
   .workspace {
@@ -413,10 +437,11 @@ canvas {
 
   .stageWrap {
     min-height: 70vh;
+    padding: 12px;
   }
 
   canvas {
-    width: min(100%, 52vh);
+    width: 100%;
     max-height: 68vh;
   }
 

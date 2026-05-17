@@ -41,9 +41,9 @@ select {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(330px, 390px) minmax(260px, 320px) minmax(460px, 760px);
+  grid-template-columns: minmax(330px, 390px) minmax(520px, 820px);
   gap: clamp(18px, 2vw, 28px);
-  max-width: 1540px;
+  max-width: 1240px;
   width: 100%;
   margin: 0 auto;
   align-items: start;
@@ -61,6 +61,11 @@ select {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.rightColumn {
+  display: grid;
+  gap: clamp(18px, 2vw, 28px);
 }
 
 .brand {
@@ -255,6 +260,15 @@ h2 {
   gap: 10px;
 }
 
+.pinSearchForm {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.pinActions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .settings {
   display: grid;
   gap: 14px;
@@ -391,7 +405,7 @@ input[type="color"] {
 
 .stageWrap {
   position: relative;
-  min-height: min(720px, calc(100vh - 80px));
+  min-height: clamp(360px, 52vh, 620px);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -412,7 +426,7 @@ input[type="color"] {
 
 canvas {
   width: min(100%, 760px);
-  max-height: calc(100vh - 128px);
+  max-height: 560px;
   aspect-ratio: 9 / 16;
   background: #0b0c0f;
   border: 1px dashed #5b6474;
@@ -432,6 +446,11 @@ canvas {
   }
 
   .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .pinSearchForm,
+  .pinActions {
     grid-template-columns: 1fr;
   }
 

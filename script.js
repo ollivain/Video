@@ -24,6 +24,11 @@ const openPinterestHome = document.querySelector("#openPinterestHome");
 const pastePinterest = document.querySelector("#pastePinterest");
 const formatSelect = document.querySelector("#formatSelect");
 const titleText = document.querySelector("#titleText");
+const imageFit = document.querySelector("#imageFit");
+const imageZoom = document.querySelector("#imageZoom");
+const imageOffsetX = document.querySelector("#imageOffsetX");
+const imageOffsetY = document.querySelector("#imageOffsetY");
+const resetImageCrop = document.querySelector("#resetImageCrop");
 const renderButton = document.querySelector("#renderButton");
 const downloadLink = document.querySelector("#downloadLink");
 const notice = document.querySelector("#notice");
@@ -73,6 +78,9 @@ function setFormat() {
   canvas.width = width;
   canvas.height = height;
   canvas.style.aspectRatio = `${width} / ${height}`;
+  if (formatSelect.value === "landscape" && imageFit.value === "cover") {
+    imageFit.value = "contain";
+  }
   drawPreview(0);
 }
 
@@ -88,17 +96,6 @@ function coverRect(imgW, imgH, outW, outH, scaleBoost = 1) {
   };
 }
 
-function drawImageCoverInRect(image, rect, scaleBoost = 1) {
-  const imageRect = coverRect(image.width, image.height, rect.width, rect.height, scaleBoost);
-  ctx.drawImage(
-    image,
-    rect.x + imageRect.x,
-    rect.y + imageRect.y,
-    imageRect.width,
-    imageRect.height,
-  );
-}
-
 function containRect(imgW, imgH, outW, outH) {
   const scale = Math.min(outW / imgW, outH / imgH);
   const width = imgW * scale;
@@ -111,15 +108,29 @@ function containRect(imgW, imgH, outW, outH) {
   };
 }
 
-function drawImageContainInRect(image, rect) {
-  const imageRect = containRect(image.width, image.height, rect.width, rect.height);
+function drawImageInRect(image, rect, mode, zoom, offsetX, offsetY) {
+  const base = mode === "contain"
+    ? containRect(image.width, image.height, rect.width, rect.height)
+    : coverRect(image.width, image.height, rect.width, rect.height);
+  const width = base.width * zoom;
+  const height = base.height * zoom;
+  const overflowX = Math.max(0, (width - rect.width) / 2);
+  const overflowY = Math.max(0, (height - rect.height) / 2);
+  const safeOffsetX = overflowX ? (offsetX / 100) * overflowX : 0;
+  const safeOffsetY = overflowY ? (offsetY / 100) * overflowY : 0;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rect.x, rect.y, rect.width, rect.height);
+  ctx.clip();
   ctx.drawImage(
     image,
-    rect.x + imageRect.x,
-    rect.y + imageRect.y,
-    imageRect.width,
-    imageRect.height,
+    rect.x + (rect.width - width) / 2 + safeOffsetX,
+    rect.y + (rect.height - height) / 2 + safeOffsetY,
+    width,
+    height,
   );
+  ctx.restore();
 }
 
 function drawRoundedPanel(x, y, w, h, r) {
@@ -155,6 +166,10 @@ function drawPreview(progress = 0) {
 
   const motion = 1;
   const isLandscape = formatSelect.value === "landscape";
+  const fitMode = imageFit.value;
+  const zoom = Number(imageZoom.value) / 100;
+  const offsetX = Number(imageOffsetX.value);
+  const offsetY = Number(imageOffsetY.value);
 
   if (isLandscape) {
     const squareSize = height;
@@ -167,7 +182,7 @@ function drawPreview(progress = 0) {
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
-    drawImageContainInRect(state.image, squareRect);
+    drawImageInRect(state.image, squareRect, fitMode, zoom, offsetX, offsetY);
   } else {
     const bgRect = coverRect(state.image.width, state.image.height, width, height, 1.12);
 
@@ -179,8 +194,7 @@ function drawPreview(progress = 0) {
     ctx.fillStyle = "rgba(8, 9, 12, 0.24)";
     ctx.fillRect(0, 0, width, height);
 
-    const mainRect = coverRect(state.image.width, state.image.height, width, height, motion);
-    ctx.drawImage(state.image, mainRect.x, mainRect.y, mainRect.width, mainRect.height);
+    drawImageInRect(state.image, { x: 0, y: 0, width, height }, fitMode, zoom * motion, offsetX, offsetY);
   }
 
   const vignette = ctx.createLinearGradient(0, height * 0.58, 0, height);
@@ -220,6 +234,14 @@ function updateReadyState() {
   }
 }
 
+function resetImageCropSettings() {
+  imageFit.value = formatSelect.value === "landscape" ? "contain" : "cover";
+  imageZoom.value = "100";
+  imageOffsetX.value = "0";
+  imageOffsetY.value = "0";
+  drawPreview(0);
+}
+
 async function loadImageFromBlob(blob, name = "kuva") {
   const url = URL.createObjectURL(blob);
   const img = new Image();
@@ -228,6 +250,7 @@ async function loadImageFromBlob(blob, name = "kuva") {
   await img.decode();
   state.image = img;
   state.imageName = name;
+  resetImageCropSettings();
   imageStatus.textContent = `Kuva valittu: ${name}`;
   drawPreview(0);
   updateReadyState();
@@ -428,9 +451,12 @@ pastePinterest.addEventListener("click", async () => {
   }
 });
 
-[formatSelect, titleText].forEach((control) => {
+[titleText, imageFit, imageZoom, imageOffsetX, imageOffsetY].forEach((control) => {
   control.addEventListener("input", () => drawPreview(0));
 });
+
+formatSelect.addEventListener("input", setFormat);
+resetImageCrop.addEventListener("click", resetImageCropSettings);
 
 async function decodeAudioDuration(url) {
   const audio = new Audio();

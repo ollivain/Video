@@ -236,27 +236,33 @@ h2 {
   gap: 10px;
 }
 
-.pinSteps {
-  margin-top: auto;
-  display: grid;
-  gap: 8px;
-}
-
-.pinSteps span {
-  display: block;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 11px;
-  background: #15171c;
-  color: var(--muted);
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-
 .settings {
   display: grid;
   gap: 14px;
   padding-top: 4px;
+}
+
+.cropControls {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.rangeField {
+  display: grid;
+  gap: 8px;
+}
+
+.rangeField span {
+  color: var(--text);
+  font-size: 0.93rem;
+  font-weight: 700;
+}
+
+input[type="range"] {
+  padding: 0;
+  accent-color: var(--focus);
 }
 
 .switch {

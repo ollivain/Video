@@ -51,6 +51,33 @@
               <input id="titleText" maxlength="48" placeholder="esim. midnight bounce">
             </label>
 
+            <div class="cropControls">
+              <label class="field">
+                <span>Kuvan sovitus</span>
+                <select id="imageFit">
+                  <option value="cover">Täytä ja rajaa</option>
+                  <option value="contain">Sovita kokonaan</option>
+                </select>
+              </label>
+
+              <label class="rangeField">
+                <span>Zoom</span>
+                <input id="imageZoom" type="range" min="100" max="220" value="100">
+              </label>
+
+              <label class="rangeField">
+                <span>Siirrä vaakaan</span>
+                <input id="imageOffsetX" type="range" min="-100" max="100" value="0">
+              </label>
+
+              <label class="rangeField">
+                <span>Siirrä pystyyn</span>
+                <input id="imageOffsetY" type="range" min="-100" max="100" value="0">
+              </label>
+
+              <button id="resetImageCrop" type="button" class="secondaryButton">Nollaa rajaus</button>
+            </div>
+
           </div>
 
           <div class="actions">
@@ -86,11 +113,6 @@
             <button id="pastePinterest" type="button" class="secondaryButton">Liitä kopioitu linkki</button>
           </div>
 
-          <div class="pinSteps">
-            <span>1. Avaa Pinterest</span>
-            <span>2. Kopioi kuvan linkki</span>
-            <span>3. Palaa ja liitä linkki</span>
-          </div>
         </div>
 
         <label class="stageWrap" id="imageDrop">

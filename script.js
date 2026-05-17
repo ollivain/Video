@@ -133,7 +133,7 @@ function restoreSettings() {
 
 function setAdvancedOpen(isOpen) {
   advancedToggle.setAttribute("aria-expanded", String(isOpen));
-  advancedPanel.hidden = !isOpen;
+  advancedPanel.classList.toggle("is-open", isOpen);
 }
 
 function preferredMime() {

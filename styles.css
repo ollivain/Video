@@ -1,7 +1,6 @@
 :root {
   color-scheme: light;
   --bg: #ffffff;
-  --page-grid: rgb(20 32 43 / 3.5%);
   --page-glow-a: rgb(42 183 169 / 12%);
   --page-glow-b: rgb(255 98 71 / 10%);
   --paper: #ffffff;
@@ -20,14 +19,12 @@
   --input-bg: #ffffff;
   --drop-bg: #ffffff;
   --stage-bg: #ffffff;
-  --stage-grid: rgb(20 32 43 / 3.5%);
   --canvas-bg: #f7f9fc;
 }
 
 body.is-dark {
   color-scheme: dark;
   --bg: #080b10;
-  --page-grid: rgb(255 255 255 / 4%);
   --page-glow-a: rgb(42 183 169 / 12%);
   --page-glow-b: rgb(124 44 255 / 14%);
   --paper: #121721;
@@ -42,7 +39,6 @@ body.is-dark {
   --input-bg: #0d1118;
   --drop-bg: #101620;
   --stage-bg: #0d1118;
-  --stage-grid: rgb(255 255 255 / 4%);
   --canvas-bg: #0a0d12;
 }
 
@@ -60,18 +56,6 @@ body {
     radial-gradient(circle at 92% 8%, var(--page-glow-b), transparent 26rem),
     var(--bg);
   overflow-x: hidden;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    repeating-linear-gradient(90deg, var(--page-grid) 0 1px, transparent 1px 56px),
-    repeating-linear-gradient(0deg, var(--page-grid) 0 1px, transparent 1px 56px);
-  mask-image: linear-gradient(180deg, black, transparent 78%);
-  pointer-events: none;
 }
 
 button,
@@ -609,9 +593,7 @@ input[type="color"] {
   position: absolute;
   inset: 22px;
   border-radius: 8px;
-  background:
-    repeating-linear-gradient(90deg, var(--stage-grid) 0 1px, transparent 1px 44px),
-    repeating-linear-gradient(0deg, var(--stage-grid) 0 1px, transparent 1px 44px);
+  background: color-mix(in srgb, var(--stage-bg) 92%, var(--paper-soft) 8%);
   pointer-events: none;
 }
 
@@ -631,19 +613,6 @@ canvas {
   border: 1px dashed rgb(20 32 43 / 28%);
   border-radius: 8px;
   box-shadow: 0 24px 70px rgb(20 32 43 / 22%);
-}
-
-.previewBadge {
-  position: absolute;
-  top: 28px;
-  left: 28px;
-  z-index: 2;
-  padding: 9px 14px;
-  border-radius: 8px;
-  background: rgb(20 32 43 / 72%);
-  color: #ffffff;
-  font-weight: 800;
-  box-shadow: 0 10px 28px rgb(20 32 43 / 18%);
 }
 
 .stageWrap:hover canvas,

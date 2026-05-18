@@ -30,6 +30,7 @@ const imageZoom = document.querySelector("#imageZoom");
 const imageOffsetX = document.querySelector("#imageOffsetX");
 const imageOffsetY = document.querySelector("#imageOffsetY");
 const resetImageCrop = document.querySelector("#resetImageCrop");
+const resetFilters = document.querySelector("#resetFilters");
 const filterBlur = document.querySelector("#filterBlur");
 const filterGrain = document.querySelector("#filterGrain");
 const filterVintage = document.querySelector("#filterVintage");
@@ -387,6 +388,15 @@ function resetImageCropSettings() {
   drawPreview(0);
 }
 
+function resetFilterSettings() {
+  filterBlur.value = defaultImageSettings.filterBlur;
+  filterGrain.value = defaultImageSettings.filterGrain;
+  filterVintage.value = defaultImageSettings.filterVintage;
+  filterContrast.value = defaultImageSettings.filterContrast;
+  filterSaturation.value = defaultImageSettings.filterSaturation;
+  drawPreview(0);
+}
+
 function resetImageSettings({ redraw = true } = {}) {
   imageFit.value = defaultImageSettings.imageFit;
   imageZoom.value = defaultImageSettings.imageZoom;
@@ -722,6 +732,7 @@ formatSelect.addEventListener("input", () => {
   saveSettings();
 });
 resetImageCrop.addEventListener("click", resetImageCropSettings);
+resetFilters.addEventListener("click", resetFilterSettings);
 advancedToggle.addEventListener("click", () => {
   setAdvancedOpen(advancedToggle.getAttribute("aria-expanded") !== "true");
   saveSettings();

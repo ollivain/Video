@@ -10,13 +10,9 @@
     <main class="shell">
       <div class="appFrame">
         <header class="topbar">
-          <div class="topBrand">
-            <span class="mark"></span>
+          <div class="topBrand" aria-label="EasyVid">
+            <span class="mark" aria-hidden="true"></span>
             <strong>EasyVid</strong>
-          </div>
-          <div class="topNav" aria-hidden="true">
-            <span>Projektit</span>
-            <span>Mallit</span>
           </div>
           <div class="topActions">
             <button id="themeToggle" class="iconButton" type="button" aria-label="Vaihda tumma tila" aria-pressed="false">☼</button>
@@ -126,6 +122,8 @@
                     <span>Saturation</span>
                     <input id="filterSaturation" type="range" min="0" max="220" value="100">
                   </label>
+
+                  <button id="resetFilters" type="button" class="secondaryButton">Nollaa suodattimet</button>
                 </div>
 
                 <div class="backgroundControls">

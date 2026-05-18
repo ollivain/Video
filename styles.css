@@ -132,6 +132,24 @@ body.is-dark .topNav span:first-child {
   background: #1d2533;
 }
 
+body.is-dark .appFrame,
+body.is-dark .panel,
+body.is-dark .stageWrap,
+body.is-dark .projectCard,
+body.is-dark .controlCard {
+  border-color: rgb(39 49 64 / 72%);
+}
+
+body.is-dark .panel,
+body.is-dark .stageWrap {
+  box-shadow: var(--shadow), inset 0 1px 0 rgb(255 255 255 / 3%);
+}
+
+body.is-dark .projectCard,
+body.is-dark .controlCard {
+  box-shadow: 0 14px 34px rgb(0 0 0 / 22%);
+}
+
 .topActions {
   justify-self: end;
   display: flex;
@@ -613,6 +631,10 @@ canvas {
   border: 1px dashed rgb(20 32 43 / 28%);
   border-radius: 8px;
   box-shadow: 0 24px 70px rgb(20 32 43 / 22%);
+}
+
+body.is-dark canvas {
+  border-color: rgb(255 255 255 / 7%);
 }
 
 .stageWrap:hover canvas,

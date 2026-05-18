@@ -316,7 +316,7 @@ function drawPreview(progress = 0) {
     ctx.save();
     ctx.setLineDash([Math.round(width * 0.02), Math.round(width * 0.015)]);
     ctx.lineWidth = Math.max(3, width * 0.004);
-    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.22)" : "rgba(20,32,43,0.18)";
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.08)" : "rgba(20,32,43,0.18)";
     ctx.strokeRect(borderInset, borderInset, width - borderInset * 2, height - borderInset * 2);
     ctx.restore();
 

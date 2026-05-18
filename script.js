@@ -46,6 +46,7 @@ const downloadLink = document.querySelector("#downloadLink");
 const notice = document.querySelector("#notice");
 const progressShell = document.querySelector(".progressShell");
 const progressBar = document.querySelector("#progressBar");
+const themeToggle = document.querySelector("#themeToggle");
 
 const formats = {
   story: [1080, 1920],
@@ -54,6 +55,7 @@ const formats = {
 };
 
 const storageKey = "beat-video-maker-settings-v2";
+const themeStorageKey = "beat-video-maker-theme-v2";
 const defaultImageSettings = {
   imageFit: "cover",
   imageZoom: "100",
@@ -120,6 +122,20 @@ function restoreSettings() {
   } catch {
     localStorage.removeItem(storageKey);
   }
+}
+
+function setTheme(theme) {
+  const isDark = theme === "dark";
+  document.body.classList.toggle("is-dark", isDark);
+  themeToggle.textContent = isDark ? "☾" : "☼";
+  themeToggle.setAttribute("aria-pressed", String(isDark));
+  themeToggle.setAttribute("aria-label", isDark ? "Vaihda vaalea tila" : "Vaihda tumma tila");
+  localStorage.setItem(themeStorageKey, isDark ? "dark" : "light");
+}
+
+function restoreTheme() {
+  const saved = localStorage.getItem(themeStorageKey);
+  setTheme(saved || "light");
 }
 
 function setAdvancedOpen(isOpen) {
@@ -292,85 +308,25 @@ function drawPreview(progress = 0) {
   ctx.clearRect(0, 0, width, height);
 
   if (!state.image) {
-    const sky = ctx.createLinearGradient(0, 0, width, height);
-    sky.addColorStop(0, "#25115f");
-    sky.addColorStop(0.42, "#9a2c86");
-    sky.addColorStop(0.72, "#f06a43");
-    sky.addColorStop(1, "#28114f");
-    ctx.fillStyle = sky;
+    const isDark = document.body.classList.contains("is-dark");
+    ctx.fillStyle = isDark ? "#0b0f16" : "#f8fafc";
     ctx.fillRect(0, 0, width, height);
 
-    const glow = ctx.createRadialGradient(width * 0.68, height * 0.28, 0, width * 0.68, height * 0.28, width * 0.55);
-    glow.addColorStop(0, "rgba(255,205,105,0.64)");
-    glow.addColorStop(0.34, "rgba(255,98,71,0.28)");
-    glow.addColorStop(1, "rgba(255,98,71,0)");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, width, height);
-
+    const borderInset = Math.round(width * 0.035);
     ctx.save();
-    ctx.globalAlpha = 0.25;
-    ctx.strokeStyle = "#ffd26f";
-    ctx.lineWidth = Math.max(2, width * 0.003);
-    ctx.beginPath();
-    ctx.arc(width * 0.53, height * 0.38, width * 0.21, Math.PI * 1.05, Math.PI * 1.92);
-    ctx.stroke();
+    ctx.setLineDash([Math.round(width * 0.02), Math.round(width * 0.015)]);
+    ctx.lineWidth = Math.max(3, width * 0.004);
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.22)" : "rgba(20,32,43,0.18)";
+    ctx.strokeRect(borderInset, borderInset, width - borderInset * 2, height - borderInset * 2);
     ctx.restore();
 
-    ctx.save();
-    ctx.globalAlpha = 0.74;
-    const bars = 34;
-    const maxBar = height * 0.26;
-    for (let i = 0; i < bars; i += 1) {
-      const leftHeight = maxBar * (0.18 + Math.abs(Math.sin(i * 0.72)) * 0.8);
-      const rightHeight = maxBar * (0.16 + Math.abs(Math.cos(i * 0.67)) * 0.78);
-      const barWidth = width * 0.007;
-      const gap = width * 0.012;
-      const leftX = width * 0.05 + i * gap;
-      const rightX = width * 0.95 - i * gap;
-      const gradient = ctx.createLinearGradient(0, height - maxBar, 0, height);
-      gradient.addColorStop(0, "rgba(255,196,80,0.86)");
-      gradient.addColorStop(1, "rgba(124,44,255,0.1)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(leftX, height - leftHeight, barWidth, leftHeight);
-      ctx.fillRect(rightX, height - rightHeight, barWidth, rightHeight);
-    }
-    ctx.restore();
-
-    ctx.save();
-    ctx.globalAlpha = 0.68;
-    ctx.fillStyle = "rgba(20,32,43,0.2)";
-    for (let i = 0; i < 8; i += 1) {
-      ctx.beginPath();
-      ctx.ellipse(width * (0.12 + i * 0.12), height * (0.82 + Math.sin(i) * 0.02), width * 0.15, height * 0.08, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.48)";
-    ctx.lineWidth = Math.max(4, width * 0.009);
-    ctx.beginPath();
-    ctx.moveTo(width * 0.49, height * 0.49);
-    ctx.lineTo(width * 0.49, height * 0.34);
-    ctx.lineTo(width * 0.61, height * 0.29);
-    ctx.lineTo(width * 0.61, height * 0.44);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(width * 0.45, height * 0.5, width * 0.035, height * 0.024, -0.45, 0, Math.PI * 2);
-    ctx.ellipse(width * 0.57, height * 0.45, width * 0.035, height * 0.024, -0.45, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `800 ${Math.round(width * 0.055)}px system-ui`;
+    ctx.fillStyle = isDark ? "#f3f6fb" : "#14202b";
+    ctx.font = `800 ${Math.round(width * 0.048)}px system-ui`;
     ctx.textAlign = "center";
-    ctx.shadowColor = "rgba(0,0,0,0.35)";
-    ctx.shadowBlur = 18;
-    ctx.fillText("Lisää kuva", width / 2, height / 2 + height * 0.09);
-    ctx.fillStyle = "rgba(255,255,255,0.82)";
-    ctx.font = `600 ${Math.round(width * 0.025)}px system-ui`;
-    ctx.fillText("Tiputa kuva tähän tai hae Pinterest-linkillä", width / 2, height / 2 + height * 0.14);
-    ctx.shadowBlur = 0;
+    ctx.fillText("Lisää kuva", width / 2, height / 2 - height * 0.018);
+    ctx.fillStyle = isDark ? "rgba(243,246,251,0.7)" : "rgba(20,32,43,0.62)";
+    ctx.font = `600 ${Math.round(width * 0.023)}px system-ui`;
+    ctx.fillText("Tiputa kuva tähän tai hae Pinterest-linkillä", width / 2, height / 2 + height * 0.036);
     return;
   }
 
@@ -771,6 +727,11 @@ advancedToggle.addEventListener("click", () => {
   saveSettings();
 });
 previewButton.addEventListener("click", startPreview);
+themeToggle.addEventListener("click", () => {
+  const nextTheme = document.body.classList.contains("is-dark") ? "light" : "dark";
+  setTheme(nextTheme);
+  drawPreview(0);
+});
 
 async function decodeAudioDuration(url) {
   const audio = new Audio();
@@ -886,6 +847,7 @@ renderButton.addEventListener("click", () => {
   });
 });
 
+restoreTheme();
 restoreSettings();
 setFormat();
 setBusy(false);

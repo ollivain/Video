@@ -292,15 +292,85 @@ function drawPreview(progress = 0) {
   ctx.clearRect(0, 0, width, height);
 
   if (!state.image) {
-    ctx.fillStyle = "#0d0f12";
+    const sky = ctx.createLinearGradient(0, 0, width, height);
+    sky.addColorStop(0, "#25115f");
+    sky.addColorStop(0.42, "#9a2c86");
+    sky.addColorStop(0.72, "#f06a43");
+    sky.addColorStop(1, "#28114f");
+    ctx.fillStyle = sky;
     ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "#f4f0e8";
-    ctx.font = `700 ${Math.round(width * 0.055)}px system-ui`;
+
+    const glow = ctx.createRadialGradient(width * 0.68, height * 0.28, 0, width * 0.68, height * 0.28, width * 0.55);
+    glow.addColorStop(0, "rgba(255,205,105,0.64)");
+    glow.addColorStop(0.34, "rgba(255,98,71,0.28)");
+    glow.addColorStop(1, "rgba(255,98,71,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.strokeStyle = "#ffd26f";
+    ctx.lineWidth = Math.max(2, width * 0.003);
+    ctx.beginPath();
+    ctx.arc(width * 0.53, height * 0.38, width * 0.21, Math.PI * 1.05, Math.PI * 1.92);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = 0.74;
+    const bars = 34;
+    const maxBar = height * 0.26;
+    for (let i = 0; i < bars; i += 1) {
+      const leftHeight = maxBar * (0.18 + Math.abs(Math.sin(i * 0.72)) * 0.8);
+      const rightHeight = maxBar * (0.16 + Math.abs(Math.cos(i * 0.67)) * 0.78);
+      const barWidth = width * 0.007;
+      const gap = width * 0.012;
+      const leftX = width * 0.05 + i * gap;
+      const rightX = width * 0.95 - i * gap;
+      const gradient = ctx.createLinearGradient(0, height - maxBar, 0, height);
+      gradient.addColorStop(0, "rgba(255,196,80,0.86)");
+      gradient.addColorStop(1, "rgba(124,44,255,0.1)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(leftX, height - leftHeight, barWidth, leftHeight);
+      ctx.fillRect(rightX, height - rightHeight, barWidth, rightHeight);
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = 0.68;
+    ctx.fillStyle = "rgba(20,32,43,0.2)";
+    for (let i = 0; i < 8; i += 1) {
+      ctx.beginPath();
+      ctx.ellipse(width * (0.12 + i * 0.12), height * (0.82 + Math.sin(i) * 0.02), width * 0.15, height * 0.08, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.48)";
+    ctx.lineWidth = Math.max(4, width * 0.009);
+    ctx.beginPath();
+    ctx.moveTo(width * 0.49, height * 0.49);
+    ctx.lineTo(width * 0.49, height * 0.34);
+    ctx.lineTo(width * 0.61, height * 0.29);
+    ctx.lineTo(width * 0.61, height * 0.44);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(width * 0.45, height * 0.5, width * 0.035, height * 0.024, -0.45, 0, Math.PI * 2);
+    ctx.ellipse(width * 0.57, height * 0.45, width * 0.035, height * 0.024, -0.45, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `800 ${Math.round(width * 0.055)}px system-ui`;
     ctx.textAlign = "center";
-    ctx.fillText("Lisää kuva", width / 2, height / 2 - 18);
-    ctx.fillStyle = "#a9acb5";
-    ctx.font = `500 ${Math.round(width * 0.028)}px system-ui`;
-    ctx.fillText("Tiputa kuva tähän tai hae Pinterest-linkillä", width / 2, height / 2 + 34);
+    ctx.shadowColor = "rgba(0,0,0,0.35)";
+    ctx.shadowBlur = 18;
+    ctx.fillText("Lisää kuva", width / 2, height / 2 + height * 0.09);
+    ctx.fillStyle = "rgba(255,255,255,0.82)";
+    ctx.font = `600 ${Math.round(width * 0.025)}px system-ui`;
+    ctx.fillText("Tiputa kuva tähän tai hae Pinterest-linkillä", width / 2, height / 2 + height * 0.14);
+    ctx.shadowBlur = 0;
     return;
   }
 

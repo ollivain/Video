@@ -8,29 +8,40 @@
   </head>
   <body>
     <main class="shell">
+      <div class="appFrame">
+        <header class="topbar">
+          <div class="topBrand">
+            <span class="mark"></span>
+            <strong>Beat Video Maker</strong>
+          </div>
+          <div class="topNav" aria-hidden="true">
+            <span>Projektit</span>
+            <span>Mallit</span>
+          </div>
+          <div class="topActions" aria-hidden="true">
+            <span class="iconButton">☼</span>
+            <span class="avatar">MK</span>
+          </div>
+        </header>
+
       <section class="workspace">
         <div class="panel controls">
-          <div class="brand">
-            <span class="mark"></span>
-            <div>
-              <h1>Beat Video Maker</h1>
-              <p>Tee kuvasta ja biitistä ladattava videolooppi.</p>
-            </div>
-          </div>
-
-          <label class="field">
+          <label class="field projectCard">
             <span>Projektin nimi</span>
             <input id="projectName" maxlength="60" placeholder="esim. LeBron edit">
           </label>
 
-          <label class="dropzone" id="audioDrop">
-            <input id="audioInput" type="file" accept="audio/*">
-            <span class="dropIcon">♪</span>
-            <strong>Tiputa biitti tähän</strong>
-            <small id="audioName">MP3, WAV, M4A tai muu selaimen tukema ääni</small>
-          </label>
+          <div class="controlCard">
+            <h2>1 Lisää biitti</h2>
+            <label class="dropzone" id="audioDrop">
+              <input id="audioInput" type="file" accept="audio/*">
+              <span class="dropIcon">♪</span>
+              <strong>Tiputa biitti tähän</strong>
+              <small id="audioName">MP3, WAV, M4A tai muu selaimen tukema ääni</small>
+            </label>
+          </div>
 
-          <div class="imageTools">
+          <div class="imageTools controlCard">
             <label class="field">
               <span>Pinterest- tai kuvalinkki</span>
               <div class="urlRow">
@@ -41,7 +52,8 @@
             </label>
           </div>
 
-          <div class="settings">
+          <div class="settings controlCard">
+            <h2>Asetukset</h2>
             <label class="field">
               <span>Formaatti</span>
               <select id="formatSelect">
@@ -185,10 +197,12 @@
 
           <label class="stageWrap" id="imageDrop">
             <input id="imageInput" type="file" accept="image/*">
+            <span class="previewBadge">Esikatselu</span>
             <canvas id="preview" width="1080" height="1920" aria-label="Videon esikatselu"></canvas>
           </label>
         </div>
       </section>
+      </div>
     </main>
 
     <script src="script.js"></script>

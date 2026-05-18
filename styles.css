@@ -20,6 +20,8 @@
   --drop-bg: #ffffff;
   --stage-bg: #ffffff;
   --canvas-bg: #f7f9fc;
+  --primary-bg: #0f0f10;
+  --primary-ink: #ffffff;
 }
 
 body.is-dark {
@@ -40,6 +42,8 @@ body.is-dark {
   --drop-bg: #242528;
   --stage-bg: #242528;
   --canvas-bg: #202124;
+  --primary-bg: #ffffff;
+  --primary-ink: #111111;
 }
 
 * {
@@ -51,10 +55,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 12% 12%, var(--page-glow-a), transparent 24rem),
-    radial-gradient(circle at 92% 8%, var(--page-glow-b), transparent 26rem),
-    var(--bg);
+  background: var(--bg);
   overflow-x: hidden;
 }
 
@@ -117,6 +118,21 @@ body.is-dark .controlCard {
   box-shadow: 0 14px 34px rgb(0 0 0 / 22%);
 }
 
+body.is-dark input,
+body.is-dark select,
+body.is-dark .secondaryButton,
+body.is-dark .progressShell {
+  border-color: #303134;
+  box-shadow: none;
+}
+
+body.is-dark .advancedSection,
+body.is-dark .cropControls,
+body.is-dark .filterControls,
+body.is-dark .backgroundControls {
+  border-top-color: #303134;
+}
+
 .topActions {
   display: flex;
   align-items: center;
@@ -143,9 +159,9 @@ body.is-dark .controlCard {
 }
 
 .avatar {
-  color: #ffffff;
+  color: var(--primary-ink);
   border: 0;
-  background: linear-gradient(135deg, var(--coral), #7c2cff 72%);
+  background: var(--primary-bg);
 }
 
 .workspace {
@@ -246,8 +262,7 @@ small {
 .dropzone,
 .imageDrop {
   border: 1px dashed var(--line-strong);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--drop-bg) 92%, white 8%), var(--drop-bg));
+  background: var(--drop-bg);
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -261,9 +276,7 @@ small {
   padding: 22px;
   gap: 6px;
   border-color: rgb(124 44 255 / 38%);
-  background:
-    radial-gradient(circle at 50% 0%, rgb(124 44 255 / 8%), transparent 68%),
-    var(--drop-bg);
+  background: var(--drop-bg);
 }
 
 .dropzone:hover,
@@ -337,6 +350,10 @@ select {
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
+body.is-dark input[type="range"] {
+  border-color: transparent;
+}
+
 input::placeholder {
   color: #8793a3;
 }
@@ -360,8 +377,8 @@ button,
   border: 0;
   border-radius: 8px;
   padding: 12px 16px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ff7048, #7c2cff 72%);
+  color: var(--primary-ink);
+  background: var(--primary-bg);
   font-weight: 850;
   cursor: pointer;
   text-decoration: none;
@@ -396,7 +413,7 @@ button:disabled {
 
 #fetchImage,
 .secondaryButton {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--paper) 96%, white 4%), color-mix(in srgb, var(--paper-soft) 82%, var(--line) 18%));
+  background: var(--paper-soft);
   color: var(--ink);
   border: 1px solid var(--line);
 }
@@ -407,9 +424,7 @@ button:disabled {
   grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
   gap: 18px 22px;
   align-items: end;
-  background:
-    linear-gradient(115deg, rgb(255 98 71 / 12%), transparent 32%),
-    color-mix(in srgb, var(--paper) 96%, transparent);
+  background: var(--paper-soft);
 }
 
 .panelHeader {
@@ -523,6 +538,61 @@ button:disabled {
 input[type="range"] {
   padding: 0;
   accent-color: var(--coral);
+  appearance: none;
+  height: 18px;
+  background: transparent;
+  border: 0;
+}
+
+body.is-dark input[type="range"] {
+  accent-color: #ffffff;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+body.is-dark input[type="range"]::-webkit-slider-runnable-track {
+  background: #303134;
+}
+
+body.is-dark input[type="range"]::-webkit-slider-thumb {
+  background: #ffffff;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+body.is-dark input[type="range"]::-moz-range-track {
+  background: #303134;
+}
+
+body.is-dark input[type="range"]::-moz-range-thumb {
+  background: #ffffff;
 }
 
 .colorRow {
@@ -591,8 +661,7 @@ input[type="color"] {
   place-items: center;
   cursor: pointer;
   padding: clamp(14px, 2vw, 24px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--stage-bg) 96%, white 4%), var(--stage-bg));
+  background: var(--stage-bg);
   border: 1px solid rgb(255 255 255 / 80%);
   overflow: hidden;
 }

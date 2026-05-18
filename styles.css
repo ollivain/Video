@@ -100,6 +100,37 @@ select {
   font-weight: 900;
 }
 
+.modeNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper-soft);
+}
+
+.modeButton {
+  min-width: 104px;
+  padding: 10px 18px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.modeButton.is-active {
+  color: var(--primary-ink);
+  background: var(--primary-bg);
+}
+
+.modeButton:not(:disabled):hover {
+  transform: none;
+  box-shadow: none;
+}
+
 body.is-dark .appFrame,
 body.is-dark .panel,
 body.is-dark .stageWrap,
@@ -121,6 +152,7 @@ body.is-dark .controlCard {
 body.is-dark input,
 body.is-dark select,
 body.is-dark .secondaryButton,
+body.is-dark .modeNav,
 body.is-dark .progressShell {
   border-color: #303134;
   box-shadow: none;
@@ -717,12 +749,21 @@ body.is-dark canvas {
   }
 
   .topbar {
-    grid-template-columns: 1fr;
-    justify-items: start;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .topActions {
     display: none;
+  }
+
+  .modeNav {
+    width: 100%;
+  }
+
+  .modeButton {
+    flex: 1;
+    min-width: 0;
   }
 
   .pinterestPanel {

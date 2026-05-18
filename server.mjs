@@ -15,7 +15,12 @@ const types = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".mov": "video/quicktime",
 };
+
+const maxVideoBytes = 250 * 1024 * 1024;
 
 function send(res, status, body, headers = {}) {
   res.writeHead(status, headers);
@@ -144,6 +149,58 @@ async function fetchImageFromUrl(inputUrl) {
   return fetchImage(metaImage, headers, "Pinterest-kuvan");
 }
 
+function isYouTubeUrl(url) {
+  return /(^|\.)youtube\.com$/i.test(url.hostname) || /^youtu\.be$/i.test(url.hostname);
+}
+
+async function fetchVideoFromUrl(inputUrl) {
+  const url = safeUrl(inputUrl);
+  if (!url) {
+    return { error: "Anna kelvollinen http- tai https-linkki." };
+  }
+
+  if (isYouTubeUrl(url)) {
+    return { error: "YouTube-linkin lataus vaatii erillisen luvallisen latauspalvelun. Käytä suoraa videotiedoston linkkiä tai tiputa videotiedosto." };
+  }
+
+  const headers = {
+    accept: "video/mp4,video/webm,video/*,*/*;q=0.8",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+  };
+
+  let response;
+  try {
+    response = await fetch(url, { headers, redirect: "follow" });
+  } catch {
+    return { error: "Videolinkin avaaminen epäonnistui. Kokeile suoraa videotiedoston osoitetta." };
+  }
+
+  if (!response.ok) {
+    return { error: `Videon haku epäonnistui (${response.status}).` };
+  }
+
+  const type = response.headers.get("content-type") || "";
+  if (!type.startsWith("video/") && !/\.m(?:p4|ov)|\.webm$/i.test(new URL(response.url).pathname)) {
+    return { error: "Linkki ei palauttanut videotiedostoa. Kokeile suoraa .mp4-, .webm- tai .mov-linkkiä." };
+  }
+
+  const length = Number(response.headers.get("content-length") || 0);
+  if (length > maxVideoBytes) {
+    return { error: "Video on liian suuri. Kokeile alle 250 MB tiedostoa." };
+  }
+
+  const body = Buffer.from(await response.arrayBuffer());
+  if (body.byteLength > maxVideoBytes) {
+    return { error: "Video on liian suuri. Kokeile alle 250 MB tiedostoa." };
+  }
+
+  return {
+    body,
+    type: type.split(";")[0] || "video/mp4",
+    source: response.url,
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const requestUrl = new URL(req.url, `http://localhost:${port}`);
@@ -159,6 +216,20 @@ const server = http.createServer(async (req, res) => {
         "content-type": result.type,
         "cache-control": "no-store",
         "x-image-source": encodeURIComponent(result.source),
+      });
+    }
+
+    if (requestUrl.pathname === "/api/video") {
+      const target = requestUrl.searchParams.get("url");
+      if (!target) return json(res, 400, { error: "Videon linkki puuttuu." });
+
+      const result = await fetchVideoFromUrl(target);
+      if (result.error) return json(res, 422, { error: result.error });
+
+      return send(res, 200, result.body, {
+        "content-type": result.type,
+        "cache-control": "no-store",
+        "x-video-source": encodeURIComponent(result.source),
       });
     }
 

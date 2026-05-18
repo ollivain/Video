@@ -549,6 +549,14 @@ function isPinterestPageUrl(url) {
   return /(^|\.)pinterest\./i.test(url.hostname) || url.hostname === "pin.it";
 }
 
+function isYouTubeUrl(url) {
+  return /(^|\.)youtube\.com$/i.test(url.hostname) || url.hostname === "youtu.be";
+}
+
+function isLikelyDirectVideoUrl(url) {
+  return /\.(m4v|mov|mp4|webm)(\?.*)?$/i.test(url.pathname);
+}
+
 function proxiedImageUrl(url) {
   const withoutProtocol = url.toString().replace(/^https?:\/\//i, "");
   return `https://images.weserv.nl/?url=${encodeURIComponent(withoutProtocol)}`;
@@ -657,6 +665,39 @@ async function loadImageFromRemoteUrl(inputUrl) {
   }
 }
 
+async function fetchVideoBlob(url) {
+  let response;
+  try {
+    response = await fetch(url.toString(), { mode: "cors" });
+  } catch {
+    throw new Error("Videon lataus ei onnistunut suoraan.");
+  }
+
+  const type = response.headers.get("content-type") || "";
+  if (!response.ok || (!type.startsWith("video/") && !isLikelyDirectVideoUrl(new URL(response.url)))) {
+    throw new Error("Linkki ei palauttanut videotiedostoa.");
+  }
+  return response.blob();
+}
+
+async function loadVideoFromRemoteUrl(inputUrl) {
+  const url = parseImageUrl(inputUrl);
+  if (!url) {
+    throw new Error("Anna kelvollinen http- tai https-linkki.");
+  }
+
+  if (isYouTubeUrl(url)) {
+    throw new Error("YouTube-linkki vaatii erillisen luvallisen latauspalvelun. Käytä suoraa videolinkkiä tai tiputa videotiedosto.");
+  }
+
+  if (!isLikelyDirectVideoUrl(url)) {
+    throw new Error("Käytä suoraa .mp4-, .webm- tai .mov-videolinkkiä.");
+  }
+
+  const blob = await fetchVideoBlob(url);
+  await loadVideoFromBlob(blob, "Linkitetty video");
+}
+
 function loadAudio(file) {
   if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
   state.audioFile = file;
@@ -718,7 +759,38 @@ async function fetchImageFromInput() {
   }
 
   if (state.mode === "video") {
-    imageStatus.textContent = "YouTube-linkkiä ei voi tuoda suoraan selaimeen. Tiputa videotiedosto tai käytä YouTube-hakua.";
+    try {
+      setBusy(true);
+      imageStatus.textContent = "Haen videota...";
+
+      if (location.hostname.endsWith("github.io")) {
+        await loadVideoFromRemoteUrl(url);
+        return;
+      }
+
+      let serverError = null;
+      try {
+        const response = await fetch(`/api/video?url=${encodeURIComponent(url)}`);
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || "Videon haku epäonnistui.");
+        }
+
+        const blob = await response.blob();
+        await loadVideoFromBlob(blob, "Linkitetty video");
+      } catch (error) {
+        serverError = error;
+        try {
+          await loadVideoFromRemoteUrl(url);
+        } catch (fallbackError) {
+          throw fallbackError || serverError;
+        }
+      }
+    } catch (error) {
+      imageStatus.textContent = error.message;
+    } finally {
+      setBusy(false);
+    }
     return;
   }
 
@@ -794,8 +866,7 @@ pastePinterest.addEventListener("click", async () => {
 
     imageUrl.value = text.trim();
     if (state.mode === "video") {
-      imageStatus.textContent = "Linkki liitetty. YouTube-videota ei vielä tuoda suoraan; tiputa videotiedosto esikatseluun.";
-      saveSettings();
+      await fetchImageFromInput();
       return;
     }
     await fetchImageFromInput();

@@ -25,3 +25,5 @@ Paikallinen verkkosivu, jolla voit yhdistää biitin ja kuvan ladattavaksi video
 ## Huomio
 
 Sivu tekee MP4:n, jos selaimen MediaRecorder tukee MP4-tallennusta tällä koneella. Jos MP4 ei ole tuettu, sivu tekee WebM-videon varmuudeksi. Pinterest-linkkien haku toimii parhaiten suorilla kuvalinkeillä tai julkisilla pin-linkeillä, joista löytyy esikatselukuva.
+
+Video-tilassa suorat videotiedostolinkit, kuten `.mp4`, `.webm` ja `.mov`, voidaan hakea paikallisen palvelimen kautta. YouTube-sivulinkkejä ei ladata suoraan; niitä varten tarvitaan erillinen luvallinen latauspalvelu tai käyttäjän itse lataama videotiedosto.

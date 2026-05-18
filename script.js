@@ -287,20 +287,6 @@ function drawGrain(rect) {
   ctx.restore();
 }
 
-function drawRoundedPanel(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
 function drawPreview(progress = 0) {
   const { width, height } = canvas;
   ctx.clearRect(0, 0, width, height);
@@ -346,17 +332,6 @@ function drawPreview(progress = 0) {
   vignette.addColorStop(1, "rgba(0,0,0,0.68)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, width, height);
-
-  const barWidth = width * 0.62;
-  const barHeight = Math.max(8, height * 0.006);
-  const barX = (width - barWidth) / 2;
-  const barY = height - height * 0.07;
-  ctx.fillStyle = "rgba(255,255,255,0.22)";
-  drawRoundedPanel(barX, barY, barWidth, barHeight, barHeight / 2);
-  ctx.fill();
-  ctx.fillStyle = "#f3c96b";
-  drawRoundedPanel(barX, barY, Math.max(barHeight, barWidth * progress), barHeight, barHeight / 2);
-  ctx.fill();
 
   const text = titleText.value.trim();
   if (text) {
@@ -825,7 +800,8 @@ async function renderVideo() {
   downloadLink.download = `${base}.${extension}`;
   downloadLink.textContent = `Lataa ${extension.toUpperCase()}`;
   downloadLink.hidden = false;
-  progressBar.style.width = "100%";
+  progressShell.hidden = true;
+  progressBar.style.width = "0%";
   setNotice(extension === "mp4" ? "Valmis MP4 ladattavaksi." : "Valmis WebM ladattavaksi. Chrome/Edge voi myöhemmin tukea MP4:tä suoraan tällä koneella.");
   setBusy(false);
 }
@@ -834,6 +810,8 @@ renderButton.addEventListener("click", () => {
   renderVideo().catch((error) => {
     console.error(error);
     setNotice(error.message);
+    progressShell.hidden = true;
+    progressBar.style.width = "0%";
     setBusy(false);
   });
 });

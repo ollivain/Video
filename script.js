@@ -1,8 +1,12 @@
 const state = {
+  mode: "picture",
   audioFile: null,
   audioUrl: "",
   image: null,
   imageName: "",
+  video: null,
+  videoUrl: "",
+  videoName: "",
   videoBlob: null,
   renderUrl: "",
 };
@@ -18,11 +22,17 @@ const audioName = document.querySelector("#audioName");
 const imageUrl = document.querySelector("#imageUrl");
 const fetchImage = document.querySelector("#fetchImage");
 const imageStatus = document.querySelector("#imageStatus");
+const sourceLinkLabel = document.querySelector("#sourceLinkLabel");
+const fitLabel = document.querySelector("#fitLabel");
+const modeButtons = document.querySelectorAll(".modeButton");
 const pinterestQuery = document.querySelector("#pinterestQuery");
 const pinterestForm = document.querySelector("#pinterestForm");
 const pinterestSearch = document.querySelector("#pinterestSearch");
 const openPinterestHome = document.querySelector("#openPinterestHome");
 const pastePinterest = document.querySelector("#pastePinterest");
+const searchPanelTitle = document.querySelector("#searchPanelTitle");
+const searchFieldLabel = document.querySelector("#searchFieldLabel");
+const searchMark = document.querySelector(".pinMark");
 const formatSelect = document.querySelector("#formatSelect");
 const titleText = document.querySelector("#titleText");
 const imageFit = document.querySelector("#imageFit");
@@ -78,8 +88,12 @@ function setNotice(message) {
   notice.textContent = message;
 }
 
+function hasVisualSource() {
+  return state.mode === "video" ? Boolean(state.video) : Boolean(state.image);
+}
+
 function setBusy(isBusy) {
-  renderButton.disabled = isBusy || !state.audioFile || !state.image;
+  renderButton.disabled = isBusy || !state.audioFile || !hasVisualSource();
   fetchImage.disabled = isBusy;
   pinterestSearch.disabled = isBusy;
   openPinterestHome.disabled = isBusy;
@@ -89,6 +103,7 @@ function setBusy(isBusy) {
 
 function settingsPayload() {
   return {
+    mode: state.mode,
     projectName: projectName.value,
     imageUrl: imageUrl.value,
     pinterestQuery: pinterestQuery.value,
@@ -119,6 +134,7 @@ function restoreSettings() {
       if (saved[key] !== undefined) control.value = saved[key];
     });
     resetImageSettings({ redraw: false });
+    setMode(saved.mode === "video" ? "video" : "picture", { redraw: false, save: false });
     setAdvancedOpen(false);
   } catch {
     localStorage.removeItem(storageKey);
@@ -137,6 +153,41 @@ function setTheme(theme) {
 function restoreTheme() {
   const saved = localStorage.getItem(themeStorageKey);
   setTheme(saved || "light");
+}
+
+function setMode(mode, { redraw = true, save = true } = {}) {
+  state.mode = mode === "video" ? "video" : "picture";
+  const isVideo = state.mode === "video";
+
+  modeButtons.forEach((button) => {
+    const isActive = button.dataset.mode === state.mode;
+    button.classList.toggle("is-active", isActive);
+    if (isActive) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
+  });
+
+  sourceLinkLabel.textContent = isVideo ? "YouTube- tai videolinkki" : "Pinterest- tai kuvalinkki";
+  imageUrl.placeholder = isVideo ? "https://youtube.com/... tai videolinkki" : "https://pin.it/... tai https://i.pinimg.com/...";
+  imageStatus.textContent = isVideo
+    ? "Voit myös tiputtaa videotiedoston esikatselun päälle."
+    : "Voit myös tiputtaa kuvatiedoston esikatselun päälle.";
+  imageInput.accept = isVideo ? "video/*" : "image/*";
+  fitLabel.textContent = isVideo ? "Videon sovitus" : "Kuvan sovitus";
+
+  searchPanelTitle.textContent = isVideo ? "YouTube haku" : "Pinterest haku";
+  searchMark.classList.toggle("is-youtube", isVideo);
+  searchFieldLabel.textContent = isVideo ? "Haku YouTubesta" : "Haku Pinterestistä";
+  pinterestQuery.name = isVideo ? "search_query" : "q";
+  pinterestQuery.placeholder = isVideo ? "esim. nba edit highlights" : "esim. dark anime street";
+  pinterestForm.action = isVideo ? "https://www.youtube.com/results" : "https://www.pinterest.com/search/pins/";
+  openPinterestHome.textContent = isVideo ? "YouTube" : "Pinterest";
+
+  if (redraw) drawPreview(0);
+  updateReadyState();
+  if (save) saveSettings();
 }
 
 function setAdvancedOpen(isOpen) {
@@ -196,10 +247,22 @@ function containRect(imgW, imgH, outW, outH) {
   };
 }
 
+function sourceWidth(source) {
+  return source?.videoWidth || source?.width || 1;
+}
+
+function sourceHeight(source) {
+  return source?.videoHeight || source?.height || 1;
+}
+
+function currentVisualSource() {
+  return state.mode === "video" ? state.video : state.image;
+}
+
 function drawImageInRect(image, rect, mode, zoom, offsetX, offsetY) {
   const base = mode === "contain"
-    ? containRect(image.width, image.height, rect.width, rect.height)
-    : coverRect(image.width, image.height, rect.width, rect.height);
+    ? containRect(sourceWidth(image), sourceHeight(image), rect.width, rect.height)
+    : coverRect(sourceWidth(image), sourceHeight(image), rect.width, rect.height);
   const width = base.width * zoom;
   const height = base.height * zoom;
   const overflowX = Math.max(0, (width - rect.width) / 2);
@@ -233,11 +296,12 @@ function imageFilter() {
 
 function drawBackground(rect) {
   const mode = backgroundMode.value;
-  if (mode === "blur" && state.image) {
-    const bgRect = coverRect(state.image.width, state.image.height, canvas.width, canvas.height, 1.12);
+  const source = currentVisualSource();
+  if (mode === "blur" && source) {
+    const bgRect = coverRect(sourceWidth(source), sourceHeight(source), canvas.width, canvas.height, 1.12);
     ctx.save();
     ctx.filter = "blur(42px) saturate(1.2) brightness(0.58)";
-    ctx.drawImage(state.image, bgRect.x, bgRect.y, bgRect.width, bgRect.height);
+    ctx.drawImage(source, bgRect.x, bgRect.y, bgRect.width, bgRect.height);
     ctx.restore();
     ctx.fillStyle = "rgba(0, 0, 0, 0.24)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -306,9 +370,10 @@ function drawGrain(rect) {
 
 function drawPreview(progress = 0) {
   const { width, height } = canvas;
+  const source = currentVisualSource();
   ctx.clearRect(0, 0, width, height);
 
-  if (!state.image) {
+  if (!source) {
     const isDark = document.body.classList.contains("is-dark");
     ctx.fillStyle = isDark ? "#0b0f16" : "#f8fafc";
     ctx.fillRect(0, 0, width, height);
@@ -324,10 +389,14 @@ function drawPreview(progress = 0) {
     ctx.fillStyle = isDark ? "#f3f6fb" : "#14202b";
     ctx.font = `800 ${Math.round(width * 0.048)}px system-ui`;
     ctx.textAlign = "center";
-    ctx.fillText("Lisää kuva", width / 2, height / 2 - height * 0.018);
+    ctx.fillText(state.mode === "video" ? "Lisää video" : "Lisää kuva", width / 2, height / 2 - height * 0.018);
     ctx.fillStyle = isDark ? "rgba(243,246,251,0.7)" : "rgba(20,32,43,0.62)";
     ctx.font = `600 ${Math.round(width * 0.023)}px system-ui`;
-    ctx.fillText("Tiputa kuva tähän tai hae Pinterest-linkillä", width / 2, height / 2 + height * 0.036);
+    ctx.fillText(
+      state.mode === "video" ? "Tiputa video tähän tai hae YouTubesta" : "Tiputa kuva tähän tai hae Pinterest-linkillä",
+      width / 2,
+      height / 2 + height * 0.036,
+    );
     return;
   }
 
@@ -349,7 +418,7 @@ function drawPreview(progress = 0) {
   drawBackground(imageRect);
   ctx.save();
   ctx.filter = imageFilter();
-  drawImageInRect(state.image, imageRect, fitMode, zoom * motion, offsetX, offsetY);
+  drawImageInRect(source, imageRect, fitMode, zoom * motion, offsetX, offsetY);
   ctx.restore();
   drawVintageOverlay(imageRect);
   drawGrain(imageRect);
@@ -375,8 +444,8 @@ function drawPreview(progress = 0) {
 
 function updateReadyState() {
   setBusy(false);
-  if (state.audioFile && state.image) {
-    setNotice("Valmis. Tee video, kun biitti ja kuva näyttävät oikeilta.");
+  if (state.audioFile && hasVisualSource()) {
+    setNotice(`Valmis. Tee video, kun biitti ja ${state.mode === "video" ? "video" : "kuva"} näyttävät oikeilta.`);
   }
 }
 
@@ -421,8 +490,39 @@ async function loadImageFromBlob(blob, name = "kuva") {
   await img.decode();
   state.image = img;
   state.imageName = name;
+  if (state.videoUrl) URL.revokeObjectURL(state.videoUrl);
+  state.video = null;
+  state.videoUrl = "";
+  state.videoName = "";
   resetImageSettings();
   imageStatus.textContent = `Kuva valittu: ${name}`;
+  drawPreview(0);
+  updateReadyState();
+  saveSettings();
+}
+
+async function loadVideoFromBlob(blob, name = "video") {
+  if (state.videoUrl) URL.revokeObjectURL(state.videoUrl);
+  const url = URL.createObjectURL(blob);
+  const video = document.createElement("video");
+  video.src = url;
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.preload = "metadata";
+
+  await new Promise((resolve, reject) => {
+    video.onloadeddata = resolve;
+    video.onerror = () => reject(new Error("Videotiedostoa ei voitu lukea."));
+  });
+
+  state.video = video;
+  state.videoUrl = url;
+  state.videoName = name;
+  state.image = null;
+  state.imageName = "";
+  resetImageSettings();
+  imageStatus.textContent = `Video valittu: ${name}`;
   drawPreview(0);
   updateReadyState();
   saveSettings();
@@ -590,7 +690,12 @@ audioInput.addEventListener("change", () => {
 
 imageInput.addEventListener("change", async () => {
   const file = imageInput.files?.[0];
-  if (file) await loadImageFromBlob(file, file.name);
+  if (!file) return;
+  if (state.mode === "video" && file.type.startsWith("video/")) {
+    await loadVideoFromBlob(file, file.name);
+  } else if (file.type.startsWith("image/")) {
+    await loadImageFromBlob(file, file.name);
+  }
 });
 
 wireDrop(audioDrop, (file) => {
@@ -598,13 +703,22 @@ wireDrop(audioDrop, (file) => {
 });
 
 wireDrop(imageDrop, async (file) => {
-  if (file.type.startsWith("image/")) await loadImageFromBlob(file, file.name);
+  if (state.mode === "video" && file.type.startsWith("video/")) {
+    await loadVideoFromBlob(file, file.name);
+  } else if (file.type.startsWith("image/")) {
+    await loadImageFromBlob(file, file.name);
+  }
 });
 
 async function fetchImageFromInput() {
   const url = imageUrl.value.trim();
   if (!url) {
-    imageStatus.textContent = "Liitä ensin Pinterest- tai kuvalinkki.";
+    imageStatus.textContent = state.mode === "video" ? "Liitä ensin YouTube- tai videolinkki." : "Liitä ensin Pinterest- tai kuvalinkki.";
+    return;
+  }
+
+  if (state.mode === "video") {
+    imageStatus.textContent = "YouTube-linkkiä ei voi tuoda suoraan selaimeen. Tiputa videotiedosto tai käytä YouTube-hakua.";
     return;
   }
 
@@ -643,15 +757,22 @@ async function fetchImageFromInput() {
 }
 
 function openPinterest(url) {
-  const win = window.open(url, "pinterest-picker", "noopener,noreferrer");
+  const win = window.open(url, state.mode === "video" ? "youtube-picker" : "pinterest-picker", "noopener,noreferrer");
   if (!win) {
-    imageStatus.textContent = "Selain esti uuden ikkunan. Salli ponnahdusikkuna tai avaa Pinterest-nappi uudestaan.";
+    imageStatus.textContent = `Selain esti uuden ikkunan. Salli ponnahdusikkuna tai avaa ${state.mode === "video" ? "YouTube" : "Pinterest"}-nappi uudestaan.`;
   }
 }
 
 fetchImage.addEventListener("click", fetchImageFromInput);
 
 pinterestForm.addEventListener("submit", () => {
+  if (state.mode === "video") {
+    pinterestQuery.name = "search_query";
+    pinterestForm.action = pinterestQuery.value.trim() ? "https://www.youtube.com/results" : "https://www.youtube.com/";
+    return;
+  }
+
+  pinterestQuery.name = "q";
   if (!pinterestQuery.value.trim()) {
     pinterestForm.action = "https://www.pinterest.com/";
   } else {
@@ -660,7 +781,7 @@ pinterestForm.addEventListener("submit", () => {
 });
 
 openPinterestHome.addEventListener("click", () => {
-  openPinterest("https://www.pinterest.com/");
+  openPinterest(state.mode === "video" ? "https://www.youtube.com/" : "https://www.pinterest.com/");
 });
 
 pastePinterest.addEventListener("click", async () => {
@@ -672,6 +793,11 @@ pastePinterest.addEventListener("click", async () => {
     }
 
     imageUrl.value = text.trim();
+    if (state.mode === "video") {
+      imageStatus.textContent = "Linkki liitetty. YouTube-videota ei vielä tuoda suoraan; tiputa videotiedosto esikatseluun.";
+      saveSettings();
+      return;
+    }
     await fetchImageFromInput();
   } catch {
     imageStatus.textContent = "Leikepöydän luku estyi. Liitä linkki käsin linkkikenttään.";
@@ -682,6 +808,10 @@ function startPreview() {
   cancelAnimationFrame(previewFrameId);
   const start = performance.now();
   const duration = 5000;
+  if (state.mode === "video" && state.video) {
+    state.video.currentTime = 0;
+    state.video.play().catch(() => {});
+  }
 
   function frame(time) {
     const elapsed = time - start;
@@ -691,6 +821,8 @@ function startPreview() {
     progressShell.hidden = false;
     if (progress < 1) {
       previewFrameId = requestAnimationFrame(frame);
+    } else if (state.video) {
+      state.video.pause();
     }
   }
 
@@ -738,6 +870,11 @@ advancedToggle.addEventListener("click", () => {
   saveSettings();
 });
 previewButton.addEventListener("click", startPreview);
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setMode(button.dataset.mode);
+  });
+});
 themeToggle.addEventListener("click", () => {
   const nextTheme = document.body.classList.contains("is-dark") ? "light" : "dark";
   setTheme(nextTheme);
@@ -756,7 +893,7 @@ async function decodeAudioDuration(url) {
 }
 
 async function renderVideo() {
-  if (!state.audioFile || !state.image) return;
+  if (!state.audioFile || !hasVisualSource()) return;
 
   const mimeType = preferredMime();
   if (!mimeType) {
@@ -799,6 +936,11 @@ async function renderVideo() {
   const duration = await decodeAudioDuration(state.audioUrl);
   let startTime = 0;
   let frameId = 0;
+  if (state.mode === "video" && state.video) {
+    state.video.currentTime = 0;
+    state.video.muted = true;
+    state.video.loop = true;
+  }
 
   function frame(time) {
     if (!startTime) startTime = time;
@@ -820,6 +962,7 @@ async function renderVideo() {
     audio.onerror = () => reject(new Error("Äänen toisto epäonnistui renderöinnissä."));
     audio.onended = () => {
       cancelAnimationFrame(frameId);
+      if (state.video) state.video.pause();
       drawPreview(1);
       recorder.stop();
       combinedStream.getTracks().forEach((track) => track.stop());
@@ -828,6 +971,7 @@ async function renderVideo() {
     recorder.start(1000);
     audioContext.resume().then(() => {
       frameId = requestAnimationFrame(frame);
+      if (state.video) state.video.play().catch(() => {});
       audio.play().catch(reject);
     });
   });

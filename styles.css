@@ -483,6 +483,28 @@ button:disabled {
   fill: currentColor;
 }
 
+.pinMark.is-youtube {
+  width: 34px;
+  height: 24px;
+  border-radius: 7px;
+  background: #ff0033;
+  color: #ffffff;
+}
+
+.pinMark.is-youtube svg {
+  display: none;
+}
+
+.pinMark.is-youtube::before {
+  content: "";
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid currentColor;
+}
+
 .pinSearchForm,
 .pinActions {
   display: grid;

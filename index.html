@@ -15,8 +15,8 @@
             <strong>EasyVid</strong>
           </div>
           <nav class="modeNav" aria-label="Sisältötila">
-            <button class="modeButton is-active" type="button" aria-current="page">Picture</button>
-            <button class="modeButton" type="button">Video</button>
+            <button class="modeButton is-active" type="button" data-mode="picture" aria-current="page">Picture</button>
+            <button class="modeButton" type="button" data-mode="video">Video</button>
           </nav>
           <div class="topActions">
             <button id="themeToggle" class="iconButton" type="button" aria-label="Vaihda tumma tila" aria-pressed="false">☼</button>
@@ -43,7 +43,7 @@
 
           <div class="imageTools controlCard">
             <label class="field">
-              <span>Pinterest- tai kuvalinkki</span>
+              <span id="sourceLinkLabel">Pinterest- tai kuvalinkki</span>
               <div class="urlRow">
                 <input id="imageUrl" type="url" placeholder="https://pin.it/... tai https://i.pinimg.com/...">
                 <button id="fetchImage" type="button">Hae</button>
@@ -76,7 +76,7 @@
               <div id="advancedPanel" class="advancedPanel">
                 <div class="cropControls">
                   <label class="field">
-                    <span>Kuvan sovitus</span>
+                    <span id="fitLabel">Kuvan sovitus</span>
                     <select id="imageFit">
                       <option value="cover">Täytä ja rajaa</option>
                       <option value="contain">Sovita kokonaan</option>
@@ -179,13 +179,13 @@
                 </svg>
               </span>
               <div>
-                <h2>Pinterest haku</h2>
+                <h2 id="searchPanelTitle">Pinterest haku</h2>
               </div>
             </div>
 
             <form id="pinterestForm" class="pinSearchForm" action="https://www.pinterest.com/search/pins/" method="get" target="_blank">
               <label class="field">
-                <span>Haku Pinterestistä</span>
+                <span id="searchFieldLabel">Haku Pinterestistä</span>
                 <input id="pinterestQuery" name="q" placeholder="esim. dark anime street" autocomplete="off">
               </label>
               <button id="pinterestSearch" type="submit">Avaa haku</button>
